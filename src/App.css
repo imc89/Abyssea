@@ -1,38 +1,747 @@
-.App {
-  text-align: center;
+/* Estilos generales del cuerpo */
+body {
+    margin: 0;
+    overflow: hidden;
+    /* Evita las barras de desplazamiento */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    /* Altura completa del viewport */
+    background-color: #0a192f;
+    /* Fondo oscuro para la profundidad del océano */
+    font-family: 'Inter', sans-serif;
+    color: #ffffff;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Contenedor principal del juego */
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    position: relative;
+    /* Necesario para posicionar contadores y mensajes */
+    width: 100%;
+    height: 100vh;
+    box-sizing: border-box;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* Contenedor para el área de juego (canvas + criaturas DOM) */
+.game-area-wrapper {
+    position: relative;
+    /* Para posicionar criaturas absolutamente dentro de este contenedor */
+    width: 80vw;
+    /* Coincide con el ancho del canvas */
+    height: 80vh;
+    /* Coincide con la altura del canvas */
+    max-width: 1200px;
+    /* Limita el tamaño máximo del juego */
+    max-height: 800px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px;
+    /* Esquinas redondeadas para el área de juego */
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    /* Efecto de brillo inicial */
+    border: 2px solid #00ffff;
+    /* Borde inicial */
+    overflow: hidden;
+    /* Asegura que las criaturas DOM no se desborden */
+    transition: box-shadow 0.5s ease-out, border-color 0.5s ease-out;
+    /* Transición para el brillo dinámico */
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+/* Estilos del canvas (área de juego) */
+canvas {
+    display: block;
+    width: 100%;
+    /* Ocupa todo el ancho del contenedor */
+    height: 100%;
+    /* Ocupa toda la altura del contenedor */
+    background-color: transparent;
+    /* Fondo transparente para ver elementos DOM debajo si es necesario */
+    /* Añadido para el efecto de scanline/CRT */
+    image-rendering: optimizeSpeed;
+    /* Mejora el rendimiento */
+    image-rendering: -moz-crisp-edges;
+    /* Firefox */
+    image-rendering: -webkit-optimize-contrast;
+    /* Webkit (Chrome, Safari) */
+    image-rendering: optimize-contrast;
+    /* IE6-9 */
+    -ms-interpolation-mode: nearest-neighbor;
+    /* IE (old) */
+    filter: blur(0.2px);
+    /* Ligero desenfoque para suavizar píxeles */
 }
 
-.App-link {
-  color: #61dafb;
+/* Contenedor para las criaturas basadas en DOM */
+#creaturesContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    /* Evita que las criaturas se desborden del área de juego */
+    pointer-events: none;
+    /* Permite que los eventos del ratón pasen al canvas de abajo */
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Estilos para cada elemento de criatura (div que contiene una imagen GIF) */
+.creature-element {
+    position: absolute;
+    display: block;
+    image-rendering: pixelated;
+    /* Para GIFs de baja resolución */
+    box-sizing: border-box;
+    /* Incluye padding y border en el tamaño total */
+    transition: opacity 0.05s linear, filter 0.05s linear, box-shadow 0.1s ease-out;
+    /* Transiciones más rápidas para opacidad/filtro */
+}
+
+.creature-element img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* Asegura que el GIF se ajuste dentro de su div */
+    display: block;
+}
+
+/* Estilo para el resaltado de criatura descubierta */
+.creature-element.highlight {
+    box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.8), 0 0 30px 10px rgba(0, 255, 255, 0.5);
+    border: 2px solid #00ffff;
+    animation: creature-highlight-pulse 0.5s ease-out forwards;
+}
+
+@keyframes creature-highlight-pulse {
+    0% {
+        box-shadow: 0 0 0px 0px rgba(0, 255, 255, 0.8), 0 0 0px 0px rgba(0, 255, 255, 0.5);
+        border-color: transparent;
+    }
+
+    50% {
+        box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.8), 0 0 30px 10px rgba(0, 255, 255, 0.5);
+        border-color: #00ffff;
+    }
+
+    100% {
+        box-shadow: 0 0 0px 0px rgba(0, 255, 255, 0.8), 0 0 0px 0px rgba(0, 255, 255, 0.5);
+        border-color: transparent;
+    }
+}
+
+
+/* Estilos para el contador de profundidad */
+#depthCounter {
+    position: absolute;
+    top: 20px;
+    /* Ajusta la posición superior */
+    left: 20px;
+    /* Ajusta la posición izquierda */
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 2px solid #00ffff;
+    /* Borde azul inicial */
+    color: #00ffff;
+    /* Color de texto azul */
+    font-size: 1.2em;
+    font-weight: bold;
+    box-shadow: 0 0 5px #00ffff, inset 0 0 5px #00ffff;
+    /* Efecto de brillo neón */
+    animation: neon-blink 1.5s infinite alternate;
+    /* Animación de parpadeo */
+    z-index: 10;
+    /* Asegura que esté por encima del canvas */
+}
+
+/* Estilos para el indicador de batería */
+#batteryDisplay {
+    position: absolute;
+    top: 20px;
+    /* Mismo margen superior que el contador de profundidad */
+    right: 20px;
+    /* Margen derecho */
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 2px solid #00ffff;
+    /* Borde azul inicial */
+    color: #00ffff;
+    /* Color de texto azul */
+    font-size: 1.2em;
+    font-weight: bold;
+    box-shadow: 0 0 5px #00ffff, inset 0 0 5px #00ffff;
+    z-index: 10;
+    transition: border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+    /* Transición para cambios de color */
+}
+
+/* Animación de pulso para batería baja */
+#batteryDisplay.low-battery {
+    animation: battery-pulse 1s infinite alternate;
+}
+
+@keyframes battery-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 5px #ff0000, inset 0 0 5px #ff0000;
+    }
+
+    100% {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px #ff0000, inset 0 0 10px #ff0000;
+    }
+}
+
+
+/* Estilos para el mensaje de cambio de zona (aparece temporalmente) */
+.zone-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px 30px;
+    border-radius: 15px;
+    border: 3px solid #00ccff;
+    color: #00ccff;
+    font-size: 2em;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 204, 255, 0.7), inset 0 0 10px rgba(0, 204, 255, 0.5);
+    opacity: 0;
+    /* Inicialmente oculto */
+    transition: opacity 0.5s ease-in-out;
+    /* Transición suave */
+    z-index: 20;
+    /* Por encima de todo lo demás */
+    pointer-events: none;
+    /* No bloquea interacciones */
+}
+
+.zone-message.show {
+    opacity: 1;
+    /* Mostrar */
+}
+
+/* Keyframes para el efecto de parpadeo neón (solo para el contador de profundidad) */
+@keyframes neon-blink {
+    0% {
+        border-color: #00ffff;
+        box-shadow: 0 0 5px #00ffff, inset 0 0 5px #00ffff;
+        color: #00ffff;
+    }
+
+    50% {
+        border-color: #00ccff;
+        box-shadow: 0 0 15px #00ccff, inset 0 0 10px #00ccff;
+        color: #00ccff;
+    }
+
+    100% {
+        border-color: #00ffff;
+        box-shadow: 0 0 5px #00ffff, inset 0 0 5px #00ffff;
+        color: #00ffff;
+    }
+}
+
+/* --- Estilos de Modales --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: none;
+    /* Oculto por defecto */
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    /* Alto z-index para estar por encima de todo */
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.modal-overlay.show {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    background-color: #1a3a5e;
+    /* Fondo azul oscuro */
+    padding: 30px;
+    border-radius: 15px;
+    position: relative;
+    max-width: 800px;
+    /* Ancho máximo del modal */
+    width: 90%;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+    /* Brillo neón inicial */
+    border: 3px solid #00ffff;
+    /* Borde neón inicial */
+    animation: neon-border-pulse 1.5s infinite alternate;
+    /* Animación de pulso del borde neón */
+    max-height: 90vh;
+    /* Limita la altura del modal */
+    overflow-y: auto;
+    /* Permite el desplazamiento si el contenido es demasiado largo */
+}
+
+.modal-body {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    /* Alinea los elementos al inicio */
+    flex-wrap: wrap;
+    /* Permite que los elementos se envuelvan en pantallas pequeñas */
+    justify-content: center;
+}
+
+.modal-text-content {
+    flex: 1;
+    min-width: 250px;
+    /* Ancho mínimo para el contenido de texto */
+}
+
+.modal-image-container {
+    flex-shrink: 0;
+    /* Evita que la imagen se encoja */
+    max-width: 250px;
+    /* Ancho máximo para la imagen */
+    text-align: center;
+    position: relative;
+    /* Añadido para posicionar el botón de cierre */
+}
+
+.modal-image-container img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.modal-text-content h2 {
+    color: #00ffff;
+    font-size: 2em;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.modal-text-content h3 {
+    color: #00ccff;
+    font-size: 1.4em;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.modal-text-content p {
+    color: #e0f7fa;
+    font-size: 1.1em;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.close-button {
+    position: absolute;
+    top: -10px;
+    /* Posición ajustada para estar encima de la imagen */
+    right: -10px;
+    /* Posición ajustada para estar encima de la imagen */
+    background: #1a3a5e;
+    /* Coincide con el fondo del modal */
+    border: 2px solid #00ffff;
+    /* Añade un borde */
+    border-radius: 50%;
+    /* Lo hace redondo */
+    width: 30px;
+    /* Tamaño pequeño */
+    height: 30px;
+    /* Tamaño pequeño */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+    /* X más pequeña */
+    color: #00ffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 101;
+    /* Asegura que esté por encima de otros elementos */
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.7);
+    /* Brillo neón */
+}
+
+.close-button:hover {
+    color: #ff0000;
+    background-color: #00ffff;
+    box-shadow: 0 0 15px #ff0000;
+    transform: scale(1.1);
+}
+
+/* Keyframes para el pulso del borde neón */
+@keyframes neon-border-pulse {
+    0% {
+        border-color: #00ffff;
+        box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+    }
+
+    100% {
+        border-color: #00ccff;
+        box-shadow: 0 0 5px #00ccff, 0 0 10px #00ccff, 0 0 15px #00ccff;
+    }
+}
+
+/* --- Estilos del Menú Principal --- */
+#mainMenu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+    transition: opacity 0.5s ease;
+}
+
+#mainMenu h1 {
+    font-size: 3.5em;
+    color: #00ffff;
+    text-shadow: 0 0 15px #00ffff, 0 0 25px #00ffff;
+    margin-bottom: 40px;
+    animation: pulse-text 2s infinite alternate;
+}
+
+#mainMenu button,
+.modal-content button {
+    /* Aplica estilos también a los botones del modal */
+    background-color: #00ccff;
+    color: #0a192f;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.5em;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0, 204, 255, 0.4);
+    transition: all 0.3s ease;
+    margin: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+#mainMenu button:hover,
+.modal-content button:hover {
+    background-color: #00e6ff;
+    box-shadow: 0 8px 20px rgba(0, 204, 255, 0.6);
+    transform: translateY(-3px);
+}
+
+#mainMenu button:active,
+.modal-content button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 5px rgba(0, 204, 255, 0.2);
+}
+
+/* Efecto de brillo del botón */
+#mainMenu button::before,
+.modal-content button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: all 0.6s ease;
+}
+
+#mainMenu button:hover::before,
+.modal-content button:hover::before {
+    left: 100%;
+}
+
+@keyframes pulse-text {
+    0% {
+        text-shadow: 0 0 15px #00ffff, 0 0 25px #00ffff;
+    }
+
+    100% {
+        text-shadow: 0 0 10px #00ccff, 0 0 20px #00ccff;
+    }
+}
+
+/* Estilos para el menú de pausa (ahora solo se activa con ESC) */
+#pauseMenu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
+    /* Oculto por defecto */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 150;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#pauseMenu.show {
+    display: flex;
+    opacity: 1;
+}
+
+#pauseMenu h2 {
+    font-size: 3em;
+    color: #00ffff;
+    margin-bottom: 30px;
+    text-shadow: 0 0 10px #00ffff;
+}
+
+/* Estilos para la galería de criaturas */
+#galleryModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 110;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#galleryModal.show {
+    display: flex;
+    opacity: 1;
+}
+
+.gallery-content {
+    background-color: #1a3a5e;
+    padding: 30px;
+    border-radius: 15px;
+    position: relative;
+    max-width: 900px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+    border: 3px solid #00ffff;
+}
+
+.gallery-content h2 {
+    color: #00ffff;
+    font-size: 2.5em;
+    text-align: center;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #00ffff;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+    justify-content: center;
+}
+
+.gallery-item {
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.gallery-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 255, 255, 0.4);
+    border-color: #00ffff;
+}
+
+.gallery-item.discovered {
+    border-color: #00ffff;
+}
+
+.gallery-item img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    filter: grayscale(100%);
+    /* Grayscale por defecto */
+    transition: filter 0.3s ease;
+}
+
+.gallery-item.discovered img {
+    filter: grayscale(0%);
+    /* Color si se descubre */
+}
+
+.gallery-item h3 {
+    color: #e0f7fa;
+    font-size: 1.2em;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gallery-item .status {
+    font-size: 0.9em;
+    color: #aaa;
+    margin-top: 5px;
+}
+
+.gallery-item.discovered .status {
+    color: #00ff00;
+    font-weight: bold;
+}
+
+/* Estilos para el tutorial */
+#tutorialMessage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.85);
+    padding: 25px 40px;
+    border-radius: 15px;
+    border: 3px solid #00ffff;
+    color: #e0f7fa;
+    font-size: 1.3em;
+    text-align: center;
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.8);
+    z-index: 200;
+    max-width: 700px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease-in-out;
+}
+
+#tutorialMessage.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#tutorialMessage p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+#tutorialMessage button {
+    margin-top: 20px;
+    background-color: #00ccff;
+    color: #0a192f;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0, 204, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+#tutorialMessage button:hover {
+    background-color: #00e6ff;
+    box-shadow: 0 5px 12px rgba(0, 204, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+/* --- Estilos del Radar --- */
+#radarDisplay {
+    width: 80px;
+    /* Tamaño del radar */
+    height: 80px;
+    border: 2px solid #555;
+    /* Borde gris por defecto */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    overflow: hidden;
+    /* Para que el spinner no se salga del borde */
+    background-color: #000;
+    /* Fondo negro */
+    z-index: 10;
+    transition: border-color 0.3s ease;
+}
+
+#radarDisplay.inactive {
+    border-color: #555;
+    /* Gris cuando está inactivo */
+    background-color: #000;
+}
+
+#radarDisplay.active {
+    border-color: #0f0;
+    /* Verde cuando está activo */
+}
+
+/* El spinner y el punto de criatura ahora se dibujan en el canvas interno del radar */
+#radarCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Estilos para el submarino (elemento DOM) */
+#submarineElement {
+    position: absolute;
+    display: block;
+    image-rendering: pixelated;
+    /* Para GIFs de baja resolución */
+    box-sizing: border-box;
+    /* Incluye padding y border en el tamaño total */
+    transition: opacity 0.05s linear, transform 0.1s linear;
+    /* Transiciones más rápidas para opacidad/filtro */
+    z-index: 5;
+    /* Asegura que esté por encima de las partículas pero debajo del foco */
+    pointer-events: none;
+    /* No bloquea interacciones */
+}
+
+#submarineElement img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
 }
