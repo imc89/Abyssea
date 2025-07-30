@@ -65,8 +65,8 @@ export class Submarine {
 
         this.x = 0;
         this.y = this.ocean.height + 20;
-        this.horizontalSpeed = 5;
-        this.verticalSpeed = 3;
+        this.horizontalSpeed = 10;
+        this.verticalSpeed = 5;
         this.facingDirection = 1;
         this.tiltAngle = 0;
         this.lastBubbleTime = 0;

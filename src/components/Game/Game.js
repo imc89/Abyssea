@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Ocean, Submarine, Particle, Bubble, ObjectPool, Creature, School } from '../../game/game';
 import { lerp, showZoneMessage, isPointInTriangle, throttle, preloadImages } from '../../utils/utils';
 import {
@@ -15,8 +15,19 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
     const submarineElementRef = useRef(null);
     const submarineImageElementRef = useRef(null);
     const radarCanvasRef = useRef(null);
+    const [isGameInitialized, setIsGameInitialized] = useState(false);
 
     useEffect(() => {
+        const imageUrlsToPreload = creatureData.map(c => c.imageSrc);
+        imageUrlsToPreload.push(SUBMARINE_IMAGE_URL);
+        preloadImages(imageUrlsToPreload, {}).then(() => {
+            setIsGameInitialized(true);
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!isGameInitialized) return;
+
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         const gameContainer = gameContainerRef.current;
@@ -585,16 +596,12 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             drawRadar(isActive, hasDetection, detectedDotPosition.x, detectedDotPosition.y);
         }
 
-        const imageUrlsToPreload = creatureData.map(c => c.imageSrc);
-        imageUrlsToPreload.push(SUBMARINE_IMAGE_URL);
-        preloadImages(imageUrlsToPreload, preloadedImages).then(() => {
-            submarine = new Submarine(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH);
-            throttledResizeCanvas();
-            window.addEventListener('keydown', handleKeyDown);
-            window.addEventListener('keyup', handleKeyUp);
-            window.addEventListener('resize', throttledResizeCanvas);
-            gameLoop();
-        });
+        submarine = new Submarine(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH);
+        throttledResizeCanvas();
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+        window.addEventListener('resize', throttledResizeCanvas);
+        gameLoop();
 
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
@@ -602,7 +609,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             window.removeEventListener('resize', throttledResizeCanvas);
             cancelAnimationFrame(animationFrameId);
         };
-    }, [onCreatureDiscovery, onGamePause, onShowCreatureModal]);
+    }, [isGameInitialized, onCreatureDiscovery, onGamePause, onShowCreatureModal]);
 
     return (
         <div className="game-container" ref={gameContainerRef}>
