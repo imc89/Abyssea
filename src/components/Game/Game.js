@@ -148,9 +148,6 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             keys[e.key.toLowerCase()] = false;
         };
 
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
-
         function handleInput() {
             submarine.horizontalDirection = 0;
             submarine.verticalDirection = 0;
@@ -593,10 +590,11 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
         preloadImages(imageUrlsToPreload, preloadedImages).then(() => {
             submarine = new Submarine(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH);
             throttledResizeCanvas();
+            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('keyup', handleKeyUp);
+            window.addEventListener('resize', throttledResizeCanvas);
             gameLoop();
         });
-
-        window.addEventListener('resize', throttledResizeCanvas);
 
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
@@ -604,7 +602,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             window.removeEventListener('resize', throttledResizeCanvas);
             cancelAnimationFrame(animationFrameId);
         };
-    }, []);
+    }, [onCreatureDiscovery, onGamePause, onShowCreatureModal]);
 
     return (
         <div className="game-container" ref={gameContainerRef}>
