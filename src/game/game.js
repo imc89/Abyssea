@@ -396,7 +396,7 @@ export class Bubble {
      * @param {boolean} isSpotlightOn - Si el foco del submarino está encendido.
      */
     draw(ctx, cameraY, globalDarknessFactor, isSpotlightOn) {
-        if (!this.active) return;
+        if (!this.active || !isFinite(this.size) || this.size <= 0) return;
         let finalAlpha = this.alpha;
 
         if (isSpotlightOn) {
