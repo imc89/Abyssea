@@ -51,15 +51,16 @@ export class Submarine {
         this.ocean = ocean;
         this.bubblePool = bubblePool;
         this.image = preloadedImages[SUBMARINE_IMAGE_URL];
+        this.scaleFactor = 1.5;
 
         if (!this.image) {
             this.drawFallback = true;
-            this.width = 120;
-            this.height = 60;
+            this.width = 120 * this.scaleFactor;
+            this.height = 60 * this.scaleFactor;
         } else {
             this.drawFallback = false;
-            this.width = this.image.naturalWidth;
-            this.height = this.image.naturalHeight;
+            this.width = this.image.naturalWidth * this.scaleFactor;
+            this.height = this.image.naturalHeight * this.scaleFactor;
         }
 
         this.x = 0;
@@ -408,11 +409,21 @@ export class Bubble {
 
         ctx.save();
         ctx.beginPath();
-        ctx.arc(this.x, this.y - cameraY, this.size, 0, Math.PI * 2);
+
+        const x = this.x;
+        const y = this.y - cameraY;
+        const size = this.size;
+
+        if (!isFinite(x) || !isFinite(y) || !isFinite(size)) {
+            ctx.restore();
+            return;
+        }
+
+        ctx.arc(x, y, size, 0, Math.PI * 2);
 
         const gradient = ctx.createRadialGradient(
-            this.x + this.size * 0.3, this.y - cameraY - this.size * 0.3, this.size * 0.1,
-            this.x, this.y - cameraY, this.size
+            x + size * 0.3, y - size * 0.3, size * 0.1,
+            x, y, size
         );
         gradient.addColorStop(0, `rgba(255, 255, 255, ${Math.max(0, finalAlpha * 0.9)})`);
         gradient.addColorStop(0.7, `rgba(200, 230, 255, ${Math.max(0, finalAlpha * 0.5)})`);
