@@ -1,14 +1,19 @@
+// Importa las dependencias necesarias de React.
 import React, { useRef, useEffect } from 'react';
 
+// Componente para mostrar el radar.
 const Radar = ({ isActive, hasDetection }) => {
+    // Referencia al canvas del radar.
     const radarCanvasRef = useRef(null);
 
+    // Efecto para dibujar el radar.
     useEffect(() => {
         const radarCanvas = radarCanvasRef.current;
         const radarCtx = radarCanvas.getContext('2d');
         let radarRotationAngle = 0;
         let detectedDotPosition = { x: null, y: null };
 
+        // Función para dibujar el radar.
         function drawRadar(isActive, hasDetection, dotX, dotY) {
             const size = radarCanvas.width;
             const center = size / 2;
@@ -85,6 +90,7 @@ const Radar = ({ isActive, hasDetection }) => {
             }
         }
 
+        // Función para actualizar la visualización del radar.
         function updateRadarDisplay() {
             if (isActive && hasDetection && detectedDotPosition.x === null) {
                 const radarSize = radarCanvas.width;
@@ -100,13 +106,16 @@ const Radar = ({ isActive, hasDetection }) => {
             drawRadar(isActive, hasDetection, detectedDotPosition.x, detectedDotPosition.y);
         }
 
+        // Solicita el siguiente fotograma de animación.
         const animationFrameId = requestAnimationFrame(updateRadarDisplay);
 
+        // Limpia el fotograma de animación cuando el componente se desmonta.
         return () => {
             cancelAnimationFrame(animationFrameId);
         };
     }, [isActive, hasDetection]);
 
+    // Renderiza el componente.
     return (
         <div id="radarDisplay" className={isActive ? 'active' : 'inactive'}>
             <canvas ref={radarCanvasRef}></canvas>
@@ -114,4 +123,5 @@ const Radar = ({ isActive, hasDetection }) => {
     );
 };
 
+// Exporta el componente para su uso en otras partes de la aplicación.
 export default Radar;

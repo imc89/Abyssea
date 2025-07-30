@@ -1,6 +1,9 @@
+// Importa la dependencia necesaria de React.
 import React from 'react';
 
+// Componente para mostrar el menú principal.
 const MainMenu = ({ onStartGame, onShowGallery }) => {
+    // Renderiza el componente.
     return (
         <div id="mainMenu">
             <h1>Explorador de Abismos Marinos</h1>
@@ -10,4 +13,5 @@ const MainMenu = ({ onStartGame, onShowGallery }) => {
     );
 };
 
+// Exporta el componente para su uso en otras partes de la aplicación.
 export default MainMenu;

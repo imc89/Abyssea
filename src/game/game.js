@@ -5,12 +5,12 @@
  */
 export class Ocean {
     constructor() {
-        this.height = 80;
-        this.waveAmplitude = 25;
-        this.waveFrequency = 0.02;
-        this.waveOffset = 0;
-        this.waveSpeed = 0.05;
-        this.color = '#00aaff';
+        this.height = 80; // Altura del océano.
+        this.waveAmplitude = 25; // Amplitud de la ola.
+        this.waveFrequency = 0.02; // Frecuencia de la ola.
+        this.waveOffset = 0; // Desplazamiento de la ola.
+        this.waveSpeed = 0.05; // Velocidad de la ola.
+        this.color = '#00aaff'; // Color del océano.
     }
 
     /**
@@ -19,27 +19,28 @@ export class Ocean {
      * @param {number} cameraY - Posición Y de la cámara.
      */
     draw(ctx, cameraY) {
-        ctx.beginPath();
-        ctx.moveTo(0, this.height - cameraY);
+        ctx.beginPath(); // Comienza un nuevo trazado.
+        ctx.moveTo(0, this.height - cameraY); // Mueve el punto de inicio del trazado.
+        // Dibuja las olas.
         for (let x = 0; x <= ctx.canvas.width; x += 10) {
             const y = this.height + Math.sin(x * this.waveFrequency + this.waveOffset) * this.waveAmplitude - cameraY;
             ctx.lineTo(x, y);
         }
-        ctx.lineTo(ctx.canvas.width, ctx.canvas.height);
-        ctx.lineTo(0, ctx.canvas.height);
-        ctx.closePath();
-        ctx.fillStyle = this.color;
-        ctx.fill();
-        ctx.strokeStyle = '#0077cc';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.lineTo(ctx.canvas.width, ctx.canvas.height); // Dibuja una línea hasta la esquina inferior derecha.
+        ctx.lineTo(0, ctx.canvas.height); // Dibuja una línea hasta la esquina inferior izquierda.
+        ctx.closePath(); // Cierra el trazado.
+        ctx.fillStyle = this.color; // Establece el color de relleno.
+        ctx.fill(); // Rellena el trazado.
+        ctx.strokeStyle = '#0077cc'; // Establece el color del borde.
+        ctx.lineWidth = 2; // Establece el ancho del borde.
+        ctx.stroke(); // Dibuja el borde.
     }
 
     /**
      * Actualiza la animación del océano.
      */
     update() {
-        this.waveOffset += this.waveSpeed;
+        this.waveOffset += this.waveSpeed; // Actualiza el desplazamiento de la ola.
     }
 }
 
@@ -48,11 +49,12 @@ export class Ocean {
  */
 export class Submarine {
     constructor(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH) {
-        this.ocean = ocean;
-        this.bubblePool = bubblePool;
-        this.image = preloadedImages[SUBMARINE_IMAGE_URL];
-        this.scaleFactor = 1.5;
+        this.ocean = ocean; // Instancia del océano.
+        this.bubblePool = bubblePool; // Pool de burbujas.
+        this.image = preloadedImages[SUBMARINE_IMAGE_URL]; // Imagen del submarino.
+        this.scaleFactor = 1.5; // Factor de escala del submarino.
 
+        // Establece el tamaño del submarino.
         if (!this.image) {
             this.drawFallback = true;
             this.width = 120 * this.scaleFactor;
@@ -63,6 +65,7 @@ export class Submarine {
             this.height = this.image.naturalHeight * this.scaleFactor;
         }
 
+        // Propiedades del submarino.
         this.x = 0;
         this.y = this.ocean.height + 20;
         this.horizontalSpeed = 5;
@@ -76,6 +79,7 @@ export class Submarine {
         this.isSpotlightOn = false;
         this.isSurfaced = false;
 
+        // Elementos del DOM.
         this.element = document.getElementById('submarineElement');
         this.imageElement = this.element.querySelector('img');
         this.imageElement.src = SUBMARINE_IMAGE_URL;
@@ -85,6 +89,7 @@ export class Submarine {
         this.horizontalDirection = 0;
         this.verticalDirection = 0;
 
+        // Constantes del juego.
         this.SPOTLIGHT_MAX_BATTERY = SPOTLIGHT_MAX_BATTERY;
         this.SPOTLIGHT_DRAIN_RATE = SPOTLIGHT_DRAIN_RATE;
         this.SPOTLIGHT_CHARGE_RATE = SPOTLIGHT_CHARGE_RATE;
@@ -129,30 +134,30 @@ export class Submarine {
         this.x += this.horizontalDirection * this.horizontalSpeed;
         this.x = Math.max(0, Math.min(this.x, canvas.width - this.width));
 
-        // Calculate the wave's Y at the submarine's current X in world coordinates
+        // Calcula la Y de la ola en la X actual del submarino en coordenadas del mundo.
         const waveYAtSubmarineX_world = this.ocean.height + Math.sin(this.x * this.ocean.waveFrequency + this.ocean.waveOffset) * this.ocean.waveAmplitude;
-        // Define the target Y for the submarine when surfaced, relative to the wave
-        const conningTowerTopAboveWave = 10; // How much of the submarine is above the wave
+        // Define la Y objetivo para el submarino cuando está en la superficie, relativa a la ola.
+        const conningTowerTopAboveWave = 10; // Cuánto del submarino está por encima de la ola.
         const targetSurfacedY_world = waveYAtSubmarineX_world - conningTowerTopAboveWave;
 
-        // Define a "surface zone" rather than a strict point
-        const surfaceZoneBottom = this.ocean.height + this.height * 0.1; // Bottom of sub slightly below ocean surface
+        // Define una "zona de superficie" en lugar de un punto estricto.
+        const surfaceZoneBottom = this.ocean.height + this.height * 0.1; // La parte inferior del submarino ligeramente por debajo de la superficie del océano.
 
-        // Check if the submarine is trying to surface or is already at the surface
-        if (this.y <= surfaceZoneBottom && this.verticalDirection <= 0) { // If moving up or stationary and within surface zone
+        // Comprueba si el submarino está intentando salir a la superficie o ya está en la superficie.
+        if (this.y <= surfaceZoneBottom && this.verticalDirection <= 0) { // Si se mueve hacia arriba o está parado y dentro de la zona de superficie.
             this.isSurfaced = true;
-            // Smoothly interpolate to the wave's Y position when surfaced
-            this.y = this.lerp(this.y, targetSurfacedY_world, 0.1); // Use lerp for smoother wave following
-            cameraY = 0; // Camera remains locked at 0 when surfaced
+            // Interpola suavemente a la posición Y de la ola cuando está en la superficie.
+            this.y = this.lerp(this.y, targetSurfacedY_world, 0.1); // Usa lerp para un seguimiento de olas más suave.
+            cameraY = 0; // La cámara permanece bloqueada en 0 cuando está en la superficie.
         } else {
-            this.isSurfaced = false; // Not surfaced, apply normal movement and camera logic
+            this.isSurfaced = false; // No está en la superficie, aplica la lógica normal de movimiento y cámara.
 
             this.y += this.verticalDirection * this.verticalSpeed;
-            const minSubWorldY = this.ocean.height - this.ocean.waveAmplitude - this.height * 0.5; // Allow some movement above water for diving
+            const minSubWorldY = this.ocean.height - this.ocean.waveAmplitude - this.height * 0.5; // Permite algo de movimiento sobre el agua para bucear.
             const maxSubWorldY = this.MAX_WORLD_DEPTH - this.height;
             this.y = Math.max(minSubWorldY, Math.min(this.y, maxSubWorldY));
 
-            // Camera movement logic (only when not surfaced)
+            // Lógica de movimiento de la cámara (solo cuando no está en la superficie).
             const deadZoneTop = cameraY + canvas.height * 0.3;
             const deadZoneBottom = cameraY + canvas.height * 0.7;
             if (this.y < deadZoneTop && cameraY > 0) {
@@ -162,7 +167,7 @@ export class Submarine {
             }
             cameraY = Math.max(0, Math.min(cameraY, this.MAX_WORLD_DEPTH - canvas.height));
 
-            // Wave influence when submerged but near surface (for smooth transition)
+            // Influencia de las olas cuando está sumergido pero cerca de la superficie (para una transición suave).
             const waveInteractionZoneTop_world = this.ocean.height - this.ocean.waveAmplitude - (this.height * 0.2);
             const waveInteractionZoneBottom_world = this.ocean.height + this.ocean.waveAmplitude + (this.height * 0.5);
             const isWithinWaveVerticalRange = (this.y + this.height * 0.5) > waveInteractionZoneTop_world &&
@@ -176,7 +181,7 @@ export class Submarine {
         else if (this.horizontalDirection === 1) { this.facingDirection = 1; }
         this.tiltAngle = 0;
 
-        // Bubble generation logic (only when not surfaced)
+        // Lógica de generación de burbujas (solo cuando no está en la superficie).
         if (!this.isSurfaced) {
             if (currentTime - this.lastBubbleTime > this.bubbleInterval) {
                 let bubbleX, bubbleY, bubbleSpeedX;
@@ -207,6 +212,7 @@ export class Submarine {
             }
         }
 
+        // Actualiza el nivel de la batería.
         if (this.isSpotlightOn && this.batteryLevel > 0) {
             this.batteryLevel = Math.max(0, this.batteryLevel - this.SPOTLIGHT_DRAIN_RATE);
             if (this.batteryLevel === 0) { this.isSpotlightOn = false; }
@@ -216,6 +222,7 @@ export class Submarine {
         return cameraY;
     }
 
+    // Función de interpolación lineal.
     lerp(a, b, t) {
         return a + (b - a) * t;
     }
@@ -561,7 +568,7 @@ export class Creature {
      * @param {number} currentTime - Tiempo actual del juego.
      */
     update(currentTime) {
-        // Only apply independent movement if not schooling
+        // Solo aplica movimiento independiente si no está en un cardumen.
         if (!this.isSchooling) {
             if (currentTime - this.lastMovementChangeTime > this.movementChangeInterval) {
                 this.velocity.x = (Math.random() - 0.5) * this.maxSpeed * 2;
@@ -593,7 +600,7 @@ export class Creature {
         if (this.scaleFactor >= this.maxScale) { this.scaleFactor = this.maxScale; this.scaleDirection = -1; }
         else if (this.scaleFactor <= this.minScale) { this.scaleFactor = this.minScale; this.scaleDirection = 1; }
 
-        // Only adjust facing direction if not schooling (school handles its members' facing)
+        // Solo ajusta la dirección de la cara si no está en un cardumen (el cardumen maneja la dirección de sus miembros).
         if (!this.isSchooling) {
             if (this.velocity.x < 0) { this.facingDirection = -1; }
             else if (this.velocity.x > 0) { this.facingDirection = 1; }
@@ -682,23 +689,23 @@ export class School {
         this.worldMinY = worldMinY;
         this.worldMaxY = worldMaxY;
 
-        this.schoolingRadius = 100; // Slightly reduced radius for tighter groups
-        this.separationDistance = 25; // Slightly increased to prevent more overlaps but still allow closeness
-        this.cohesionWeight = 0.008; // Increased for stronger pull towards center
-        this.alignmentWeight = 0.08; // Increased for stronger alignment
-        this.separationWeight = 0.03; // Increased to prevent more overlaps
+        this.schoolingRadius = 100; // Radio ligeramente reducido para grupos más apretados.
+        this.separationDistance = 25; // Ligeramente aumentado para evitar más superposiciones pero aún permitir la cercanía.
+        this.cohesionWeight = 0.008; // Aumentado para un tirón más fuerte hacia el centro.
+        this.alignmentWeight = 0.08; // Aumentado para una alineación más fuerte.
+        this.separationWeight = 0.03; // Aumentado para evitar más superposiciones.
         this.boundaryWeight = 0.1;
-        this.fleeWeight = 1.0; // Increased for stronger flee response
+        this.fleeWeight = 1.0; // Aumentado para una respuesta de huida más fuerte.
 
-        this.normalMaxSpeed = 0.4; // Slightly slower for more natural, slow movement
-        this.fleeSpeed = 4.0; // Faster flee speed
-        this.reuniteSpeed = 2.0; // Faster reunification speed
+        this.normalMaxSpeed = 0.4; // Ligeramente más lento para un movimiento más natural y lento.
+        this.fleeSpeed = 4.0; // Velocidad de huida más rápida.
+        this.reuniteSpeed = 2.0; // Velocidad de reunificación más rápida.
 
         this.isFleeing = false;
-        this.reuniting = false; // New state for reunification phase
+        this.reuniting = false; // Nuevo estado para la fase de reunificación.
         this.fleeingTimeout = null;
-        this.fleeRadius = 250; // Increased radius to trigger fleeing earlier
-        this.reuniteDelay = 1500; // Shorter delay to start reuniting faster
+        this.fleeRadius = 250; // Radio aumentado para activar la huida antes.
+        this.reuniteDelay = 1500; // Retraso más corto para comenzar a reunirse más rápido.
         this.canvas = canvas;
 
         for (let i = 0; i < numMembers; i++) {
@@ -709,8 +716,8 @@ export class School {
                 canvas
             );
             creature.isSchooling = true;
-            creature.maxSpeed = this.normalMaxSpeed; // Set initial max speed
-            creature.maxForce = 0.05; // Max force for individual creature
+            creature.maxSpeed = this.normalMaxSpeed; // Establece la velocidad máxima inicial.
+            creature.maxForce = 0.05; // Fuerza máxima para una criatura individual.
             this.members.push(creature);
         }
     }
@@ -723,7 +730,7 @@ export class School {
     update(currentTime, submarine) {
         let anyMemberCloseToSubmarine = false;
 
-        // Check for submarine proximity
+        // Comprueba la proximidad del submarino.
         for (const member of this.members) {
             const distToSub = Math.sqrt(
                 (member.x + member.width / 2 - (submarine.x + submarine.width / 2)) ** 2 +
@@ -737,23 +744,23 @@ export class School {
 
         if (anyMemberCloseToSubmarine) {
             this.isFleeing = true;
-            this.reuniting = false; // Stop reuniting if sub is close again
+            this.reuniting = false; // Deja de reunirte si el submarino está cerca de nuevo.
             if (this.fleeingTimeout) {
                 clearTimeout(this.fleeingTimeout);
                 this.fleeingTimeout = null;
             }
         } else if (this.isFleeing && !this.fleeingTimeout) {
-            // Submarine moved away, start reunification timer
+            // El submarino se alejó, inicia el temporizador de reunificación.
             this.fleeingTimeout = setTimeout(() => {
                 this.isFleeing = false;
                 this.fleeingTimeout = null;
-                this.reuniting = true; // Start reuniting phase
-                // Set a timeout to end reunification phase
-                setTimeout(() => this.reuniting = false, 3000); // Reunite for 3 seconds
+                this.reuniting = true; // Inicia la fase de reunificación.
+                // Establece un tiempo de espera para finalizar la fase de reunificación.
+                setTimeout(() => this.reuniting = false, 3000); // Reunirse durante 3 segundos.
             }, this.reuniteDelay);
         }
 
-        // Calculate average velocity for school facing direction if not fleeing
+        // Calcula la velocidad promedio para la dirección de la cara del cardumen si no está huyendo.
         let totalVelocityX = 0;
         if (!this.isFleeing && !this.reuniting) {
             this.members.forEach(member => {
@@ -769,7 +776,7 @@ export class School {
             let cohesion = { x: 0, y: 0 };
             let count = 0;
 
-            // Fleeing force from submarine for individual member
+            // Fuerza de huida del submarino para un miembro individual.
             let fleeForce = { x: 0, y: 0 };
             if (this.isFleeing) {
                 const distToSub = Math.sqrt(
@@ -781,8 +788,8 @@ export class School {
                         member.y + member.height / 2 - (submarine.y + submarine.height / 2),
                         member.x + member.width / 2 - (submarine.x + submarine.width / 2)
                     );
-                    const fleeMagnitude = 1 - (distToSub / this.fleeRadius); // Stronger closer to sub
-                    fleeForce.x = Math.cos(angle) * fleeMagnitude * 2; // Stronger flee force
+                    const fleeMagnitude = 1 - (distToSub / this.fleeRadius); // Más fuerte cuanto más cerca del submarino.
+                    fleeForce.x = Math.cos(angle) * fleeMagnitude * 2; // Fuerza de huida más fuerte.
                     fleeForce.y = Math.sin(angle) * fleeMagnitude * 2;
                 }
             }
@@ -857,27 +864,27 @@ export class School {
                 boundaryAvoidance.y /= magBoundary;
             }
 
-            // Add a small random force for more natural movement
-            const randomForceMagnitude = 0.005; // Small random force
+            // Agrega una pequeña fuerza aleatoria para un movimiento más natural.
+            const randomForceMagnitude = 0.005; // Pequeña fuerza aleatoria.
             let randomForceX = (Math.random() - 0.5) * randomForceMagnitude;
             let randomForceY = (Math.random() - 0.5) * randomForceMagnitude;
 
-            // Adjust weights and max speed based on state
+            // Ajusta los pesos y la velocidad máxima según el estado.
             let currentCohesionWeight = this.cohesionWeight;
             let currentAlignmentWeight = this.alignmentWeight;
             let currentSeparationWeight = this.separationWeight;
             let currentMaxSpeed = this.normalMaxSpeed;
 
             if (this.isFleeing) {
-                currentCohesionWeight = 0; // Ignore cohesion when fleeing
-                currentAlignmentWeight = 0; // Ignore alignment when fleeing
-                currentSeparationWeight = this.separationWeight * 4; // Much stronger separation when fleeing
-                currentMaxSpeed = this.fleeSpeed; // Faster when fleeing
+                currentCohesionWeight = 0; // Ignora la cohesión al huir.
+                currentAlignmentWeight = 0; // Ignora la alineación al huir.
+                currentSeparationWeight = this.separationWeight * 4; // Separación mucho más fuerte al huir.
+                currentMaxSpeed = this.fleeSpeed; // Más rápido al huir.
             } else if (this.reuniting) {
-                currentCohesionWeight = this.cohesionWeight * 3; // Boost cohesion to reunite
-                currentAlignmentWeight = this.alignmentWeight * 2; // Boost alignment
-                currentSeparationWeight = this.separationWeight * 0.5; // Less separation
-                currentMaxSpeed = this.reuniteSpeed; // Faster reunification
+                currentCohesionWeight = this.cohesionWeight * 3; // Aumenta la cohesión para reunirse.
+                currentAlignmentWeight = this.alignmentWeight * 2; // Aumenta la alineación.
+                currentSeparationWeight = this.separationWeight * 0.5; // Menos separación.
+                currentMaxSpeed = this.reuniteSpeed; // Reunificación más rápida.
             }
 
             let forceX = separation.x * currentSeparationWeight +
@@ -885,14 +892,14 @@ export class School {
                 cohesion.x * currentCohesionWeight +
                 boundaryAvoidance.x * this.boundaryWeight +
                 fleeForce.x * this.fleeWeight +
-                randomForceX; // Add random force
+                randomForceX; // Agrega fuerza aleatoria.
 
             let forceY = separation.y * currentSeparationWeight +
                 alignment.y * currentAlignmentWeight +
                 cohesion.y * currentCohesionWeight +
                 boundaryAvoidance.y * this.boundaryWeight +
                 fleeForce.y * this.fleeWeight +
-                randomForceY; // Add random force
+                randomForceY; // Agrega fuerza aleatoria.
 
             const magForce = Math.sqrt(forceX ** 2 + forceY ** 2);
             if (magForce > member.maxForce) {
@@ -915,11 +922,11 @@ export class School {
             member.y = Math.max(this.worldMinY, Math.min(member.y, this.worldMaxY - member.height));
             member.x = Math.max(0, Math.min(member.x, this.canvas.width - member.width));
 
-            // Adjust facing direction based on school's overall direction if not fleeing
+            // Ajusta la dirección de la cara según la dirección general del cardumen si no está huyendo.
             if (!this.isFleeing) {
                 member.facingDirection = schoolFacingDirection;
             } else {
-                // When fleeing, they turn away from the submarine
+                // Al huir, se alejan del submarino.
                 if (fleeForce.x > 0) {
                     member.facingDirection = 1;
                 } else if (fleeForce.x < 0) {
@@ -927,7 +934,7 @@ export class School {
                 }
             }
 
-            member.update(currentTime); // Creature's own update for scaling/light
+            member.update(currentTime); // Actualización propia de la criatura para escalar/luz.
         });
     }
 

@@ -1,6 +1,9 @@
+// Importa la dependencia necesaria de React.
 import React from 'react';
 
+// Componente para mostrar el menú de pausa.
 const PauseMenu = ({ onResume, onBackToMenu }) => {
+    // Renderiza el componente.
     return (
         <div id="pauseMenu" className="modal-overlay show">
             <div className="modal-content">
@@ -12,4 +15,5 @@ const PauseMenu = ({ onResume, onBackToMenu }) => {
     );
 };
 
+// Exporta el componente para su uso en otras partes de la aplicación.
 export default PauseMenu;

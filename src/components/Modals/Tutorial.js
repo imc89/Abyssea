@@ -1,6 +1,9 @@
+// Importa la dependencia necesaria de React.
 import React from 'react';
 
+// Componente para mostrar el tutorial.
 const Tutorial = ({ onClose }) => {
+    // Renderiza el componente.
     return (
         <div id="tutorialMessage" className="show">
             <p>¡Bienvenido, explorador! Usa las <strong>flechas</strong> o <strong>W/A/S/D</strong> para mover tu
@@ -15,4 +18,5 @@ const Tutorial = ({ onClose }) => {
     );
 };
 
+// Exporta el componente para su uso en otras partes de la aplicación.
 export default Tutorial;

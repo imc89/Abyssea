@@ -1,10 +1,14 @@
+// Importa la dependencia necesaria de React.
 import React from 'react';
 
+// Componente para mostrar el modal de una criatura.
 const CreatureModal = ({ creature, onClose }) => {
+    // Si no hay ninguna criatura seleccionada, no renderiza nada.
     if (!creature) {
         return null;
     }
 
+    // Renderiza el componente.
     return (
         <div id="creatureModal" className="modal-overlay show">
             <div className="modal-content">
@@ -25,4 +29,5 @@ const CreatureModal = ({ creature, onClose }) => {
     );
 };
 
+// Exporta el componente para su uso en otras partes de la aplicación.
 export default CreatureModal;

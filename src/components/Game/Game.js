@@ -1,13 +1,19 @@
+// Importa las dependencias necesarias de React.
 import React, { useRef, useEffect, useState } from 'react';
+// Importa las clases y funciones del juego.
 import { Ocean, Submarine, Particle, Bubble, ObjectPool, Creature, School } from '../../game/game';
+// Importa las funciones de utilidad.
 import { lerp, showZoneMessage, isPointInTriangle, throttle, preloadImages } from '../../utils/utils';
+// Importa las constantes del juego.
 import {
     PIXELS_PER_METER, MAX_WORLD_DEPTH, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE,
     SPOTLIGHT_CHARGE_RATE, AMBIENT_LIGHT_RADIUS, AMBIENT_LIGHT_MAX_OPACITY, SUBMARINE_IMAGE_URL,
     ZONE_COLORS, creatureData
 } from '../../game/constants';
 
+// Componente principal del juego.
 const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
+    // Referencias a los elementos del DOM.
     const canvasRef = useRef(null);
     const gameContainerRef = useRef(null);
     const gameAreaWrapperRef = useRef(null);
@@ -15,8 +21,10 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
     const submarineElementRef = useRef(null);
     const submarineImageElementRef = useRef(null);
     const radarCanvasRef = useRef(null);
+    // Estado para controlar si el juego está inicializado.
     const [isGameInitialized, setIsGameInitialized] = useState(false);
 
+    // Efecto para precargar las imágenes del juego.
     useEffect(() => {
         const imageUrlsToPreload = creatureData.map(c => c.imageSrc);
         imageUrlsToPreload.push(SUBMARINE_IMAGE_URL);
@@ -25,9 +33,11 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
         });
     }, []);
 
+    // Efecto para inicializar y manejar el bucle del juego.
     useEffect(() => {
         if (!isGameInitialized) return;
 
+        // Referencias a los elementos del DOM.
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         const gameContainer = gameContainerRef.current;
@@ -35,10 +45,12 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
         const radarCanvas = radarCanvasRef.current;
         const radarCtx = radarCanvas.getContext('2d');
 
+        // Variables del juego.
         let animationFrameId;
         let cameraY = 0;
         let lastDisplayedZoneName = "";
 
+        // Estado del juego.
         const gameState = {
             currentScreen: 'game',
             gamePaused: false,
@@ -51,6 +63,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
 
         const preloadedImages = {};
 
+        // Instancias de los objetos del juego.
         const ocean = new Ocean();
         const bubblePool = new ObjectPool(Bubble, 200);
         const particlePool = new ObjectPool(Particle, 5000);
@@ -59,6 +72,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
         const creatureSchools = {};
         const individualCreatures = [];
 
+        // Función para inicializar las criaturas del juego.
         function initializeCreatures() {
             Object.values(creatureSchools).forEach(school => {
                 if (school && typeof school.removeElements === 'function') {
@@ -115,8 +129,10 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             }
         }
 
+        // Objeto para almacenar el estado de las teclas.
         const keys = {};
 
+        // Manejador para el evento de presionar una tecla.
         const handleKeyDown = (e) => {
             const key = e.key.toLowerCase();
 
@@ -141,10 +157,12 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             }
         };
 
+        // Manejador para el evento de soltar una tecla.
         const handleKeyUp = (e) => {
             keys[e.key.toLowerCase()] = false;
         };
 
+        // Función para manejar la entrada del jugador.
         function handleInput() {
             submarine.horizontalDirection = 0;
             submarine.verticalDirection = 0;
@@ -155,6 +173,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             else { submarine.verticalDirection = 0; }
         }
 
+        // Función para obtener las criaturas que están en la luz del submarino.
         function getCreaturesInLight() {
             const creaturesInLight = [];
             const lightLength = 200;
@@ -194,6 +213,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             return creaturesInLight;
         }
 
+        // Función para manejar la pulsación de la tecla Enter.
         function handleEnterPress() {
             if (!submarine.isSpotlightOn) {
                 return;
@@ -207,15 +227,18 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             }
         }
 
+        // Variables para el parpadeo del foco.
         let spotlightFlickerFactor = 1.0;
         const SPOTLIGHT_FLICKER_SPEED = 0.05;
         const SPOTLIGHT_FLICKER_AMOUNT = 0.05;
 
+        // Bucle principal del juego.
         function gameLoop(currentTime) {
             if (gameState.currentScreen !== 'game') {
                 return;
             }
 
+            // Lógica de la zona actual.
             let currentZone = ZONE_COLORS[0];
             let nextZone = ZONE_COLORS[0];
             let zoneIndex = 0;
@@ -231,6 +254,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
                 nextZone = currentZone;
             }
 
+            // Lógica de la oscuridad.
             let interpolationFactor = 0;
             if (nextZone.depth !== currentZone.depth) {
                 interpolationFactor = (cameraY - currentZone.depth) / (nextZone.depth - currentZone.depth);
@@ -240,12 +264,14 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             }
             const interpolatedDarknessLevel = lerp(currentZone.darknessLevel, nextZone.darknessLevel, interpolationFactor);
 
+            // Dibuja el fondo del océano.
             const currentOceanR = lerp(currentZone.r, nextZone.r, interpolationFactor);
             const currentOceanG = lerp(currentZone.g, nextZone.g, interpolationFactor);
             const currentOceanB = lerp(currentZone.b, nextZone.b, interpolationFactor);
             ctx.fillStyle = `rgb(${Math.round(currentOceanR)}, ${Math.round(currentOceanG)}, ${Math.round(currentOceanB)})`;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Dibuja el gradiente del océano.
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             const gradientOpacity = 0.3 * (1 - interpolatedDarknessLevel);
             gradient.addColorStop(0, `rgba(173, 216, 230, ${gradientOpacity})`);
@@ -254,12 +280,14 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Actualiza los objetos del juego.
             handleInput();
             ocean.update();
             cameraY = submarine.update(currentTime, canvas, cameraY);
 
             const creaturesInLight = submarine.isSpotlightOn ? getCreaturesInLight() : [];
 
+            // Actualiza y dibuja las criaturas.
             if (creatureSchools.epipelagic) {
                 creatureSchools.epipelagic.update(currentTime, submarine);
                 creatureSchools.epipelagic.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
@@ -269,27 +297,33 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
                 creature.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
             });
 
+            // Dibuja el océano.
             ocean.draw(ctx, cameraY);
 
+            // Actualiza y dibuja las partículas.
             particlePool.forEachActive(p => {
                 p.update(MAX_WORLD_DEPTH, ocean.height, submarine, canvas);
                 p.draw(ctx, cameraY, interpolatedDarknessLevel, false);
             });
 
+            // Actualiza y dibuja las burbujas.
             bubblePool.forEachActive(bubble => {
                 bubble.update();
                 bubble.draw(ctx, cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn);
             });
 
+            // Dibuja la superposición de oscuridad.
             const finalDarknessOverlayOpacity = interpolatedDarknessLevel;
             if (finalDarknessOverlayOpacity > 0) {
                 ctx.fillStyle = `rgba(0, 0, 0, ${finalDarknessOverlayOpacity})`;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
+            // Dibuja las luces.
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
 
+            // Dibuja la luz ambiental.
             if (submarine.isSpotlightOn && interpolatedDarknessLevel > 0.1) {
                 const visibleY = submarine.y - cameraY;
                 const centerX = submarine.x + submarine.width / 2;
@@ -304,6 +338,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
                 ctx.fill();
             }
 
+            // Dibuja el foco del submarino.
             if (submarine.isSpotlightOn && submarine.batteryLevel > 0) {
                 const visibleY = submarine.y - cameraY;
                 const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * 0.8 : submarine.width * 0.2);
@@ -339,6 +374,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
                 ctx.fill();
             }
 
+            // Dibuja las luces de las criaturas.
             const allCreatures = [
                 ...(creatureSchools.epipelagic ? creatureSchools.epipelagic.members : []),
                 ...individualCreatures
@@ -366,15 +402,19 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
 
             ctx.restore();
 
+            // Dibuja el submarino.
             submarine.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn);
 
+            // Dibuja el efecto de scanline.
             drawScanlineEffect(ctx);
 
+            // Actualiza los elementos del HUD.
             const currentDepthMeters = Math.max(0, Math.floor(cameraY / PIXELS_PER_METER));
             document.getElementById('depthCounter').textContent = `Profundidad: ${currentDepthMeters} m`;
             const batteryPercentage = Math.floor((submarine.batteryLevel / SPOTLIGHT_MAX_BATTERY) * 100);
             document.getElementById('batteryDisplay').textContent = `Batería: ${batteryPercentage}%`;
 
+            // Actualiza el color del indicador de batería.
             if (batteryPercentage < 20) {
                 document.getElementById('batteryDisplay').style.color = '#ff0000';
                 document.getElementById('batteryDisplay').style.borderColor = '#ff0000';
@@ -392,6 +432,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
                 document.getElementById('batteryDisplay').classList.remove('low-battery');
             }
 
+            // Muestra el mensaje de cambio de zona.
             let currentZoneName = "Zona Desconocida";
             for (let i = ZONE_COLORS.length - 1; i >= 0; i--) {
                 if (cameraY >= ZONE_COLORS[i].depth) {
@@ -404,13 +445,17 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
                 lastDisplayedZoneName = currentZoneName;
             }
 
+            // Actualiza el radar.
             updateRadarDisplay();
 
+            // Actualiza el brillo del borde del área de juego.
             updateGameAreaWrapperGlow(interpolatedDarknessLevel);
 
+            // Solicita el siguiente fotograma de animación.
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
+        // Función para dibujar el efecto de scanline.
         function drawScanlineEffect(ctx) {
             ctx.save();
             ctx.globalCompositeOperation = 'source-over';
@@ -426,6 +471,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             ctx.restore();
         }
 
+        // Función para actualizar el brillo del borde del área de juego.
         function updateGameAreaWrapperGlow(darknessLevel) {
             const baseColor = [0, 255, 255];
             const dimmedColor = [0, 100, 150];
@@ -444,6 +490,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             gameAreaWrapper.style.boxShadow = `0 0 ${shadowBlur}px rgba(${r}, ${g}, ${b}, ${shadowOpacity}), inset 0 0 ${shadowSpread / 2}px rgba(${r}, ${g}, ${b}, ${shadowOpacity * 0.5})`;
         }
 
+        // Función para redimensionar el canvas.
         const throttledResizeCanvas = throttle(function () {
             gameAreaWrapper.style.width = `${window.innerWidth * 0.8}px`;
             gameAreaWrapper.style.height = `${window.innerHeight * 0.8}px`;
@@ -484,9 +531,11 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             }
         }, 100);
 
+        // Variables para el radar.
         let radarRotationAngle = 0;
         let detectedDotPosition = { x: null, y: null };
 
+        // Función para dibujar el radar.
         function drawRadar(isActive, hasDetection, dotX, dotY) {
             const size = radarCanvas.width;
             const center = size / 2;
@@ -563,6 +612,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             }
         }
 
+        // Función para actualizar el radar.
         function updateRadarDisplay() {
             const isActive = submarine.isSpotlightOn;
             const creaturesFound = getCreaturesInLight();
@@ -582,6 +632,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
             drawRadar(isActive, hasDetection, detectedDotPosition.x, detectedDotPosition.y);
         }
 
+        // Inicializa el juego.
         submarine = new Submarine(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH);
         throttledResizeCanvas();
         window.addEventListener('keydown', handleKeyDown);
@@ -589,6 +640,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
         window.addEventListener('resize', throttledResizeCanvas);
         gameLoop();
 
+        // Limpia los event listeners cuando el componente se desmonta.
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
@@ -597,6 +649,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
         };
     }, [isGameInitialized, onCreatureDiscovery, onGamePause, onShowCreatureModal]);
 
+    // Renderiza el componente.
     return (
         <div className="game-container" ref={gameContainerRef}>
             <div className="game-area-wrapper" ref={gameAreaWrapperRef}>
@@ -615,4 +668,5 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
     );
 };
 
+// Exporta el componente para su uso en otras partes de la aplicación.
 export default Game;
