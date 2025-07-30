@@ -32,9 +32,6 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
         const ctx = canvas.getContext('2d');
         const gameContainer = gameContainerRef.current;
         const gameAreaWrapper = gameAreaWrapperRef.current;
-        const creaturesContainer = creaturesContainerRef.current;
-        const submarineElement = submarineElementRef.current;
-        const submarineImageElement = submarineImageElementRef.current;
         const radarCanvas = radarCanvasRef.current;
         const radarCtx = radarCanvas.getContext('2d');
 
@@ -119,17 +116,6 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
         }
 
         const keys = {};
-
-        function resetMovementKeys() {
-            keys['arrowleft'] = false;
-            keys['a'] = false;
-            keys['arrowright'] = false;
-            keys['d'] = false;
-            keys['arrowup'] = false;
-            keys['w'] = false;
-            keys['arrowdown'] = false;
-            keys['s'] = false;
-        }
 
         const handleKeyDown = (e) => {
             const key = e.key.toLowerCase();

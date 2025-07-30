@@ -51,22 +51,21 @@ export class Submarine {
         this.ocean = ocean;
         this.bubblePool = bubblePool;
         this.image = preloadedImages[SUBMARINE_IMAGE_URL];
-        this.scaleFactor = 0.8; // Increased size
 
         if (!this.image) {
             this.drawFallback = true;
-            this.width = 120 * this.scaleFactor;
-            this.height = 60 * this.scaleFactor;
+            this.width = 120;
+            this.height = 60;
         } else {
             this.drawFallback = false;
-            this.width = this.image.naturalWidth * this.scaleFactor;
-            this.height = this.image.naturalHeight * this.scaleFactor;
+            this.width = this.image.naturalWidth;
+            this.height = this.image.naturalHeight;
         }
 
         this.x = 0;
         this.y = this.ocean.height + 20;
-        this.horizontalSpeed = 10;
-        this.verticalSpeed = 5;
+        this.horizontalSpeed = 5;
+        this.verticalSpeed = 3;
         this.facingDirection = 1;
         this.tiltAngle = 0;
         this.lastBubbleTime = 0;
@@ -492,9 +491,9 @@ export class Creature {
 
         this.x = Math.random() * (canvas.width - this.width);
         this.y = Math.random() * (worldMaxY - worldMinY) + worldMinY;
-        this.velocity = { x: (Math.random() - 0.5) * 1, y: (Math.random() - 0.5) * 1 };
-        this.maxSpeed = 1.0;
-        this.minSpeed = 0.3;
+        this.velocity = { x: (Math.random() - 0.5) * 0.5, y: (Math.random() - 0.5) * 0.5 };
+        this.maxSpeed = 0.5;
+        this.minSpeed = 0.1;
         this.facingDirection = this.velocity.x > 0 ? 1 : -1;
         this.worldMinY = worldMinY;
         this.worldMaxY = worldMaxY;
