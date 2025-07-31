@@ -11,6 +11,8 @@ export const SUBMARINE_STATIC_IMAGE_URL = 'https://i.ibb.co/ympgPXB0/submarine-s
 export const SUBMARINE_BASE_WIDTH = 120;
 export const SUBMARINE_BASE_HEIGHT = 60;
 export const SUBMARINE_SCALE_FACTOR = 1.5;
+export const SUBMARINE_HORIZONTAL_SPEED = 5;
+export const SUBMARINE_VERTICAL_SPEED = 3;
 
 // Define colores y niveles de oscuridad para diferentes zonas de profundidad.
 export const ZONE_COLORS = [

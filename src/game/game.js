@@ -48,7 +48,7 @@ export class Ocean {
  * Representa el submarino del jugador.
  */
 export class Submarine {
-    constructor(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SUBMARINE_STATIC_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR) {
+    constructor(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SUBMARINE_STATIC_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED) {
         this.ocean = ocean; // Instancia del océano.
         this.bubblePool = bubblePool; // Pool de burbujas.
         this.image = preloadedImages[SUBMARINE_IMAGE_URL]; // Imagen del submarino.
@@ -68,8 +68,8 @@ export class Submarine {
         // Propiedades del submarino.
         this.x = 0;
         this.y = this.ocean.height + 20;
-        this.horizontalSpeed = 5;
-        this.verticalSpeed = 3;
+        this.horizontalSpeed = SUBMARINE_HORIZONTAL_SPEED;
+        this.verticalSpeed = SUBMARINE_VERTICAL_SPEED;
         this.facingDirection = 1;
         this.tiltAngle = 0;
         this.lastBubbleTime = 0;
