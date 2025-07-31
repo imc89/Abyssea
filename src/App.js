@@ -18,6 +18,8 @@ function App() {
   const [discoveredCreatures, setDiscoveredCreatures] = useState({});
   // Estado para la criatura seleccionada en el modal.
   const [selectedCreature, setSelectedCreature] = useState(null);
+  // Estado para controlar si el juego está en pausa.
+  const [isPaused, setIsPaused] = useState(false);
 
   // Manejador para iniciar el juego.
   const handleStartGame = () => {
