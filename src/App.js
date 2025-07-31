@@ -1,5 +1,5 @@
 // Importa las dependencias necesarias de React.
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 // Importa los estilos de la aplicación.
 import './App.css';
 // Importa los componentes del juego.
@@ -18,8 +18,6 @@ function App() {
   const [discoveredCreatures, setDiscoveredCreatures] = useState({});
   // Estado para la criatura seleccionada en el modal.
   const [selectedCreature, setSelectedCreature] = useState(null);
-  // Estado para controlar si el juego está en pausa.
-  const [isPaused, setIsPaused] = useState(false);
 
   // Manejador para iniciar el juego.
   const handleStartGame = () => {
@@ -45,6 +43,7 @@ function App() {
   // Manejador para cerrar el modal de una criatura.
   const handleCloseCreatureModal = () => {
     setSelectedCreature(null);
+    setCurrentScreen('game');
   };
 
   // Manejador para pausar el juego.
@@ -91,6 +90,7 @@ function App() {
               onCreatureDiscovery={handleCreatureDiscovery}
               onGamePause={handleGamePause}
               onShowCreatureModal={handleShowCreatureModal}
+              paused={currentScreen === 'creatureModal' || currentScreen === 'pause'}
             />
             {currentScreen === 'creatureModal' && <CreatureModal creature={selectedCreature} onClose={handleCloseCreatureModal} />}
             {currentScreen === 'pause' && <PauseMenu onResume={handleResumeGame} onBackToMenu={handleBackToMenu} />}
