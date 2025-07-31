@@ -11,7 +11,7 @@ export const creatureData = [
         maxDepth: 50,
         numInstances: 15,
         flees: true,
-        movementChangeFrequency: 4, // More erratic
+        movementChangeFrequency: 0, // More erratic
     },
     {
         id: 'pezFantasma',
@@ -27,7 +27,7 @@ export const creatureData = [
         minDepth: 70,
         maxDepth: 100,
         numInstances: 8,
-        flees: true,
+        flees: false,
         movementChangeFrequency: 1, // Slower, more graceful
     },
     {
