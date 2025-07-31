@@ -1,5 +1,5 @@
 // Importa las dependencias necesarias de React.
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, memo } from 'react';
 // Importa las clases y funciones del juego.
 import { Ocean, Submarine, Particle, Bubble, ObjectPool, Creature, School } from '../../game/game';
 // Importa las funciones de utilidad.
@@ -674,4 +674,4 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
 };
 
 // Exporta el componente para su uso en otras partes de la aplicación.
-export default Game;
+export default memo(Game);
