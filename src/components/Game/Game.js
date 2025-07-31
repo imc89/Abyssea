@@ -23,6 +23,15 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, paused })
     const radarCanvasRef = useRef(null);
     // Estado para controlar si el juego está inicializado.
     const [isGameInitialized, setIsGameInitialized] = useState(false);
+    const animationFrameId = useRef(null);
+    const cameraY = useRef(0);
+    const lastDisplayedZoneName = useRef("");
+    const ocean = useRef(new Ocean());
+    const bubblePool = useRef(new ObjectPool(Bubble, 200));
+    const particlePool = useRef(new ObjectPool(Particle, 5000));
+    const submarine = useRef(null);
+    const creatureSchools = useRef({});
+    const individualCreatures = useRef([]);
 
     // Efecto para precargar las imágenes del juego.
     useEffect(() => {
@@ -45,11 +54,6 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, paused })
         const radarCanvas = radarCanvasRef.current;
         const radarCtx = radarCanvas.getContext('2d');
 
-        // Variables del juego.
-        const animationFrameId = useRef(null);
-        const cameraY = useRef(0);
-        const lastDisplayedZoneName = useRef("");
-
         // Estado del juego.
         const gameState = {
             currentScreen: 'game',
@@ -62,15 +66,6 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, paused })
         };
 
         const preloadedImages = {};
-
-        // Instancias de los objetos del juego.
-        const ocean = useRef(new Ocean());
-        const bubblePool = useRef(new ObjectPool(Bubble, 200));
-        const particlePool = useRef(new ObjectPool(Particle, 5000));
-        const submarine = useRef(null);
-
-        const creatureSchools = useRef({});
-        const individualCreatures = useRef([]);
 
         // Función para inicializar las criaturas del juego.
         function initializeCreatures() {
