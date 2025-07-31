@@ -1,5 +1,5 @@
 // Importa las dependencias necesarias de React.
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 // Importa los estilos de la aplicación.
 import './App.css';
 // Importa los componentes del juego.
@@ -32,15 +32,15 @@ function App() {
   };
 
   // Manejador para registrar el descubrimiento de una criatura.
-  const handleCreatureDiscovery = (creatureId) => {
+  const handleCreatureDiscovery = useCallback((creatureId) => {
     setDiscoveredCreatures(prev => ({ ...prev, [creatureId]: true }));
-  };
+  }, []);
 
   // Manejador para mostrar el modal de una criatura.
-  const handleShowCreatureModal = (creature) => {
+  const handleShowCreatureModal = useCallback((creature) => {
     setSelectedCreature(creature);
     setCurrentScreen('creatureModal');
-  };
+  }, []);
 
   // Manejador para cerrar el modal de una criatura.
   const handleCloseCreatureModal = () => {
@@ -49,10 +49,10 @@ function App() {
   };
 
   // Manejador para pausar el juego.
-  const handleGamePause = () => {
+  const handleGamePause = useCallback(() => {
     setIsPaused(true);
     setCurrentScreen('pause');
-  };
+  }, []);
 
   // Manejador para reanudar el juego.
   const handleResumeGame = () => {
@@ -76,42 +76,31 @@ function App() {
     setCurrentScreen('game');
   };
 
-  // Función para renderizar la pantalla actual.
-  const renderScreen = () => {
-    switch (currentScreen) {
-      case 'mainMenu':
-        return <MainMenu onStartGame={handleStartGame} onShowGallery={handleShowGallery} />;
-      case 'tutorial':
-        return <Tutorial onClose={handleCloseTutorial} />;
-      case 'game':
-        return (
-          <Game
-            onCreatureDiscovery={handleCreatureDiscovery}
-            onGamePause={handleGamePause}
-            onShowCreatureModal={handleShowCreatureModal}
-          />
-        );
-      case 'gallery':
-        return (
-          <GalleryModal
-            discoveredCreatures={discoveredCreatures}
-            onShowCreatureModal={handleShowCreatureModal}
-            onClose={handleCloseGallery}
-          />
-        );
-      case 'creatureModal':
-        return <CreatureModal creature={selectedCreature} onClose={handleCloseCreatureModal} />;
-      case 'pause':
-        return <PauseMenu onResume={handleResumeGame} onBackToMenu={handleBackToMenu} />;
-      default:
-        return <MainMenu onStartGame={handleStartGame} onShowGallery={handleShowGallery} />;
-    }
-  };
-
   // Renderiza el componente.
   return (
     <div className="App">
-      {renderScreen()}
+      {currentScreen === 'mainMenu' && <MainMenu onStartGame={handleStartGame} onShowGallery={handleShowGallery} />}
+      {currentScreen === 'tutorial' && <Tutorial onClose={handleCloseTutorial} />}
+      {currentScreen === 'gallery' && (
+        <GalleryModal
+          discoveredCreatures={discoveredCreatures}
+          onShowCreatureModal={handleShowCreatureModal}
+          onClose={handleCloseGallery}
+        />
+      )}
+
+      {(currentScreen === 'game' || currentScreen === 'creatureModal' || currentScreen === 'pause') && (
+        <Game
+          onCreatureDiscovery={handleCreatureDiscovery}
+          onGamePause={handleGamePause}
+          onShowCreatureModal={handleShowCreatureModal}
+          isPaused={currentScreen === 'pause' || currentScreen === 'creatureModal'}
+        />
+      )}
+
+      {currentScreen === 'creatureModal' && <CreatureModal creature={selectedCreature} onClose={handleCloseCreatureModal} />}
+      {currentScreen === 'pause' && <PauseMenu onResume={handleResumeGame} onBackToMenu={handleBackToMenu} />}
+
       <audio id="backgroundMusic" loop>
         <source src="./assets/audio/JWG.mp3" type="audio/mpeg" />
         Tu navegador no soporta el elemento de audio.

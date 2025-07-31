@@ -48,17 +48,17 @@ export class Ocean {
  * Representa el submarino del jugador.
  */
 export class Submarine {
-    constructor(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH) {
+    constructor(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SUBMARINE_STATIC_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED) {
         this.ocean = ocean; // Instancia del océano.
         this.bubblePool = bubblePool; // Pool de burbujas.
         this.image = preloadedImages[SUBMARINE_IMAGE_URL]; // Imagen del submarino.
-        this.scaleFactor = 1.5; // Factor de escala del submarino.
+        this.scaleFactor = SUBMARINE_SCALE_FACTOR; // Factor de escala del submarino.
 
         // Establece el tamaño del submarino.
         if (!this.image) {
             this.drawFallback = true;
-            this.width = 120 * this.scaleFactor;
-            this.height = 60 * this.scaleFactor;
+            this.width = SUBMARINE_BASE_WIDTH * this.scaleFactor;
+            this.height = SUBMARINE_BASE_HEIGHT * this.scaleFactor;
         } else {
             this.drawFallback = false;
             this.width = this.image.naturalWidth * this.scaleFactor;
@@ -68,8 +68,8 @@ export class Submarine {
         // Propiedades del submarino.
         this.x = 0;
         this.y = this.ocean.height + 20;
-        this.horizontalSpeed = 5;
-        this.verticalSpeed = 3;
+        this.horizontalSpeed = SUBMARINE_HORIZONTAL_SPEED;
+        this.verticalSpeed = SUBMARINE_VERTICAL_SPEED;
         this.facingDirection = 1;
         this.tiltAngle = 0;
         this.lastBubbleTime = 0;
@@ -78,11 +78,14 @@ export class Submarine {
         this.batteryLevel = SPOTLIGHT_MAX_BATTERY;
         this.isSpotlightOn = false;
         this.isSurfaced = false;
+        this.isPaused = false;
 
         // Elementos del DOM.
         this.element = document.getElementById('submarineElement');
         this.imageElement = this.element.querySelector('img');
         this.imageElement.src = SUBMARINE_IMAGE_URL;
+        this.animatedImageUrl = SUBMARINE_IMAGE_URL;
+        this.staticImageUrl = SUBMARINE_STATIC_IMAGE_URL;
         this.element.style.width = `${this.width}px`;
         this.element.style.height = `${this.height}px`;
 
@@ -129,6 +132,20 @@ export class Submarine {
      * @param {number} currentTime - Tiempo actual del juego.
      */
     update(currentTime, canvas, cameraY) {
+        if (this.isPaused) {
+            return cameraY;
+        }
+        const isMoving = this.horizontalDirection !== 0 || this.verticalDirection !== 0;
+
+        if (isMoving) {
+            if (this.imageElement.src !== this.animatedImageUrl) {
+                this.imageElement.src = this.animatedImageUrl;
+            }
+        } else {
+            if (this.imageElement.src !== this.staticImageUrl) {
+                this.imageElement.src = this.staticImageUrl;
+            }
+        }
         const waveInfluenceFactor = 0.15;
 
         this.x += this.horizontalDirection * this.horizontalSpeed;

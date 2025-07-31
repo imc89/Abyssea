@@ -1,5 +1,5 @@
 // Importa las dependencias necesarias de React.
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, memo } from 'react';
 // Importa las clases y funciones del juego.
 import { Ocean, Submarine, Particle, Bubble, ObjectPool, Creature, School } from '../../game/game';
 // Importa las funciones de utilidad.
@@ -8,11 +8,11 @@ import { lerp, showZoneMessage, isPointInTriangle, throttle, preloadImages } fro
 import {
     PIXELS_PER_METER, MAX_WORLD_DEPTH, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE,
     SPOTLIGHT_CHARGE_RATE, AMBIENT_LIGHT_RADIUS, AMBIENT_LIGHT_MAX_OPACITY, SUBMARINE_IMAGE_URL,
-    ZONE_COLORS, creatureData
+    ZONE_COLORS, creatureData, SUBMARINE_STATIC_IMAGE_URL, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED
 } from '../../game/constants';
 
 // Componente principal del juego.
-const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
+const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused }) => {
     // Referencias a los elementos del DOM.
     const canvasRef = useRef(null);
     const gameContainerRef = useRef(null);
@@ -134,22 +134,30 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
 
         // Manejador para el evento de presionar una tecla.
         const handleKeyDown = (e) => {
+            if (isPaused) {
+                // Si el juego está en pausa, solo escucha 'Escape' para reanudar,
+                // pero deja que otros eventos de tecla (como Enter para el modal) se propaguen.
+                if (e.key === 'Escape') {
+                    onGamePause();
+                }
+                return;
+            }
+
             const key = e.key.toLowerCase();
 
+            // Previene el comportamiento predeterminado solo cuando el juego está activo.
             if (key === ' ' || key === 'enter') {
                 e.preventDefault();
             }
 
             keys[key] = true;
 
-            if ((key === ' ' || key === 'spacebar') && !e.repeat && gameState.currentScreen === 'game') {
+            if ((key === ' ' || key === 'spacebar') && !e.repeat) {
                 submarine.isSpotlightOn = !submarine.isSpotlightOn;
             }
 
             if (key === 'enter' && !e.repeat) {
-                if (gameState.currentScreen === 'game') {
-                    handleEnterPress();
-                }
+                handleEnterPress();
             }
 
             if (key === 'escape') {
@@ -234,6 +242,10 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
 
         // Bucle principal del juego.
         function gameLoop(currentTime) {
+            if (isPaused) {
+                animationFrameId = requestAnimationFrame(gameLoop);
+                return;
+            }
             if (gameState.currentScreen !== 'game') {
                 return;
             }
@@ -356,22 +368,23 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
                 const p3x = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
                 const p3y = lightSourceY + lightWidthAtEnd / 2;
 
-                const spotlightGradient = ctx.createRadialGradient(
-                    p1x, p1y, 0,
-                    p1x, p1y, lightLength
-                );
+                if (isFinite(p1x) && isFinite(p1y) && isFinite(lightLength)) {
+                    const spotlightGradient = ctx.createRadialGradient(
+                        p1x, p1y, 0,
+                        p1x, p1y, lightLength
+                    );
+                    spotlightGradient.addColorStop(0, `rgba(200, 220, 255, ${0.5 * spotlightFlickerFactor})`);
+                    spotlightGradient.addColorStop(0.7, `rgba(150, 180, 255, ${0.2 * spotlightFlickerFactor})`);
+                    spotlightGradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
 
-                spotlightGradient.addColorStop(0, `rgba(200, 220, 255, ${0.5 * spotlightFlickerFactor})`);
-                spotlightGradient.addColorStop(0.7, `rgba(150, 180, 255, ${0.2 * spotlightFlickerFactor})`);
-                spotlightGradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
-
-                ctx.fillStyle = spotlightGradient;
-                ctx.beginPath();
-                ctx.moveTo(p1x, p1y);
-                ctx.lineTo(p2x, p2y);
-                ctx.lineTo(p3x, p3y);
-                ctx.closePath();
-                ctx.fill();
+                    ctx.fillStyle = spotlightGradient;
+                    ctx.beginPath();
+                    ctx.moveTo(p1x, p1y);
+                    ctx.lineTo(p2x, p2y);
+                    ctx.lineTo(p3x, p3y);
+                    ctx.closePath();
+                    ctx.fill();
+                }
             }
 
             // Dibuja las luces de las criaturas.
@@ -633,7 +646,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
         }
 
         // Inicializa el juego.
-        submarine = new Submarine(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH);
+        submarine = new Submarine(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SUBMARINE_STATIC_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED);
         throttledResizeCanvas();
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
@@ -669,4 +682,4 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
 };
 
 // Exporta el componente para su uso en otras partes de la aplicación.
-export default Game;
+export default memo(Game);
