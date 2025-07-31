@@ -360,22 +360,23 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 const p3x = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
                 const p3y = lightSourceY + lightWidthAtEnd / 2;
 
-                const spotlightGradient = ctx.createRadialGradient(
-                    p1x, p1y, 0,
-                    p1x, p1y, lightLength
-                );
+                if (isFinite(p1x) && isFinite(p1y) && isFinite(lightLength)) {
+                    const spotlightGradient = ctx.createRadialGradient(
+                        p1x, p1y, 0,
+                        p1x, p1y, lightLength
+                    );
+                    spotlightGradient.addColorStop(0, `rgba(200, 220, 255, ${0.5 * spotlightFlickerFactor})`);
+                    spotlightGradient.addColorStop(0.7, `rgba(150, 180, 255, ${0.2 * spotlightFlickerFactor})`);
+                    spotlightGradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
 
-                spotlightGradient.addColorStop(0, `rgba(200, 220, 255, ${0.5 * spotlightFlickerFactor})`);
-                spotlightGradient.addColorStop(0.7, `rgba(150, 180, 255, ${0.2 * spotlightFlickerFactor})`);
-                spotlightGradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
-
-                ctx.fillStyle = spotlightGradient;
-                ctx.beginPath();
-                ctx.moveTo(p1x, p1y);
-                ctx.lineTo(p2x, p2y);
-                ctx.lineTo(p3x, p3y);
-                ctx.closePath();
-                ctx.fill();
+                    ctx.fillStyle = spotlightGradient;
+                    ctx.beginPath();
+                    ctx.moveTo(p1x, p1y);
+                    ctx.lineTo(p2x, p2y);
+                    ctx.lineTo(p3x, p3y);
+                    ctx.closePath();
+                    ctx.fill();
+                }
             }
 
             // Dibuja las luces de las criaturas.
