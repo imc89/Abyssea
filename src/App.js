@@ -1,5 +1,5 @@
 // Importa las dependencias necesarias de React.
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 // Importa los estilos de la aplicación.
 import './App.css';
 // Importa los componentes del juego.
@@ -14,23 +14,17 @@ import Tutorial from './components/Modals/Tutorial';
 function App() {
   // Estado para controlar la pantalla actual.
   const [currentScreen, setCurrentScreen] = useState('mainMenu');
-  const [isPaused, setIsPaused] = useState(false);
   // Estado para almacenar las criaturas descubiertas.
   const [discoveredCreatures, setDiscoveredCreatures] = useState({});
   // Estado para la criatura seleccionada en el modal.
   const [selectedCreature, setSelectedCreature] = useState(null);
+  // Estado para controlar si el juego está en pausa.
+  const [isPaused, setIsPaused] = useState(false);
+
   // Manejador para iniciar el juego.
   const handleStartGame = () => {
     setCurrentScreen('tutorial');
   };
-
-  useEffect(() => {
-    if (currentScreen === 'pause' || currentScreen === 'creatureModal') {
-      setIsPaused(true);
-    } else {
-      setIsPaused(false);
-    }
-  }, [currentScreen]);
 
   // Manejador para mostrar la galería.
   const handleShowGallery = () => {
@@ -51,20 +45,24 @@ function App() {
   // Manejador para cerrar el modal de una criatura.
   const handleCloseCreatureModal = () => {
     setSelectedCreature(null);
+    setCurrentScreen('game');
   };
 
   // Manejador para pausar el juego.
   const handleGamePause = () => {
+    setIsPaused(true);
     setCurrentScreen('pause');
   };
 
   // Manejador para reanudar el juego.
   const handleResumeGame = () => {
+    setIsPaused(false);
     setCurrentScreen('game');
   };
 
   // Manejador para volver al menú principal.
   const handleBackToMenu = () => {
+    setIsPaused(false);
     setCurrentScreen('mainMenu');
   };
 
@@ -78,18 +76,14 @@ function App() {
     setCurrentScreen('game');
   };
 
-  const gameComponentRef = useRef(null);
-
-  if (currentScreen === 'game' && !gameComponentRef.current) {
-    gameComponentRef.current = (
-      <Game
-        onCreatureDiscovery={handleCreatureDiscovery}
-        onGamePause={handleGamePause}
-        onShowCreatureModal={handleShowCreatureModal}
-        isPaused={isPaused}
-      />
-    );
-  }
+  const game = (
+    <Game
+      onCreatureDiscovery={handleCreatureDiscovery}
+      onGamePause={handleGamePause}
+      onShowCreatureModal={handleShowCreatureModal}
+      isPaused={currentScreen === 'pause' || currentScreen === 'creatureModal'}
+    />
+  );
 
   // Función para renderizar la pantalla actual.
   const renderScreen = () => {
@@ -99,20 +93,12 @@ function App() {
       case 'tutorial':
         return <Tutorial onClose={handleCloseTutorial} />;
       case 'game':
-        return gameComponentRef.current;
-      case 'creatureModal':
         return (
-          <>
-            {gameComponentRef.current}
-            <CreatureModal creature={selectedCreature} onClose={handleCloseCreatureModal} />
-          </>
-        );
-      case 'pause':
-        return (
-          <>
-            {gameComponentRef.current}
-            <PauseMenu onResume={handleResumeGame} onBackToMenu={handleBackToMenu} />
-          </>
+          <Game
+            onCreatureDiscovery={handleCreatureDiscovery}
+            onGamePause={handleGamePause}
+            onShowCreatureModal={handleShowCreatureModal}
+          />
         );
       case 'gallery':
         return (
@@ -122,6 +108,10 @@ function App() {
             onClose={handleCloseGallery}
           />
         );
+      case 'creatureModal':
+        return <CreatureModal creature={selectedCreature} onClose={handleCloseCreatureModal} />;
+      case 'pause':
+        return <PauseMenu onResume={handleResumeGame} onBackToMenu={handleBackToMenu} />;
       default:
         return <MainMenu onStartGame={handleStartGame} onShowGallery={handleShowGallery} />;
     }
