@@ -8,7 +8,7 @@ import { lerp, showZoneMessage, isPointInTriangle, throttle, preloadImages } fro
 import {
     PIXELS_PER_METER, MAX_WORLD_DEPTH, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE,
     SPOTLIGHT_CHARGE_RATE, AMBIENT_LIGHT_RADIUS, AMBIENT_LIGHT_MAX_OPACITY, SUBMARINE_IMAGE_URL,
-    ZONE_COLORS, SUBMARINE_STATIC_IMAGE_URL, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED
+    ZONE_COLORS, SUBMARINE_STATIC_IMAGE_URL, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED, PARTICLE_DENSITY_FACTOR
 } from '../../game/constants';
 import { creatureData } from '../../game/creatures';
 
@@ -495,15 +495,19 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             initializeCreatures();
 
             particlePool.pool.forEach(p => p.active = false);
-            const numMotes = 4000;
-            const numDebris = 1000;
+            const numMotes = 4000 * PARTICLE_DENSITY_FACTOR;
+            const numDebris = 1000 * PARTICLE_DENSITY_FACTOR;
             for (let i = 0; i < numMotes; i++) {
                 const p = particlePool.get();
-                p.init(Math.random() * canvas.width, Math.random() * (MAX_WORLD_DEPTH - (ocean.height + 30)) + (ocean.height + 30), (Math.random() * 0.6 - 0.3) + (Math.sin(p.y * 0.01) * 0.1), (Math.random() * 0.3 - 0.15) - 0.05, Math.random() * 1.5 + 0.8, Math.random() * 0.4 + 0.3, 0, 'mote');
+                const y = Math.random() * (MAX_WORLD_DEPTH - (ocean.height + 30)) + (ocean.height + 30);
+                const alpha = 0.1 + (y / MAX_WORLD_DEPTH) * 0.4;
+                p.init(Math.random() * canvas.width, y, (Math.random() * 0.6 - 0.3) + (Math.sin(y * 0.01) * 0.1), (Math.random() * 0.3 - 0.15) - 0.05, Math.random() * 1.5 + 0.8, alpha, 0, 'mote');
             }
             for (let i = 0; i < numDebris; i++) {
                 const p = particlePool.get();
-                p.init(Math.random() * canvas.width, Math.random() * (MAX_WORLD_DEPTH - (ocean.height + 30)) + (ocean.height + 30), (Math.random() * 0.8 - 0.4) + (Math.cos(p.y * 0.005) * 0.2), (Math.random() * 0.5 - 0.25) - 0.1, Math.random() * 3 + 1.5, Math.random() * 0.3 + 0.1, 0, 'debris');
+                const y = Math.random() * (MAX_WORLD_DEPTH - (ocean.height + 30)) + (ocean.height + 30);
+                const alpha = 0.1 + (y / MAX_WORLD_DEPTH) * 0.3;
+                p.init(Math.random() * canvas.width, y, (Math.random() * 0.8 - 0.4) + (Math.cos(y * 0.005) * 0.2), (Math.random() * 0.5 - 0.25) - 0.1, Math.random() * 3 + 1.5, alpha, 0, 'debris');
             }
         }, 100);
 
