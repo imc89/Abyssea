@@ -276,7 +276,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             const spotlightP2Y = lightSourceY - lightWidthAtEnd / 2;
             const spotlightP3X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
             const spotlightP3Y = lightSourceY + lightWidthAtEnd / 2;
-            const creaturesInLight = submarine.isSpotlightOn ? getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y) : [];
+            const creaturesInLight = getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
 
             // Actualiza y dibuja las criaturas.
             Object.values(creatureSchools).forEach(school => {
@@ -434,7 +434,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             }
 
             // Actualiza el radar.
-            updateRadarDisplay();
+            updateRadarDisplay(creaturesInLight);
 
             // Actualiza el brillo del borde del área de juego.
             updateGameAreaWrapperGlow(interpolatedDarknessLevel);
@@ -605,10 +605,9 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
         }
 
         // Función para actualizar el radar.
-        function updateRadarDisplay() {
+        function updateRadarDisplay(creaturesInLight) {
             const isActive = submarine.isSpotlightOn;
-            const creaturesFound = getCreaturesInLight();
-            const hasDetection = creaturesFound.length > 0;
+            const hasDetection = creaturesInLight.length > 0;
 
             if (isActive && hasDetection && detectedDotPosition.x === null) {
                 const radarSize = radarCanvas.width;
