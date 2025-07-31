@@ -1,8 +1,22 @@
 // Importa la dependencia necesaria de React.
-import React from 'react';
+import React, { useEffect } from 'react';
 
 // Componente para mostrar el modal de una criatura.
 const CreatureModal = ({ creature, onClose }) => {
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Enter') {
+                onClose();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onClose]);
+
     // Si no hay ninguna criatura seleccionada, no renderiza nada.
     if (!creature) {
         return null;
