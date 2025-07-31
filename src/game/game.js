@@ -540,6 +540,7 @@ export class Creature {
         this.maxScale = 1.05;
         this.isSchooling = false;
 
+        this.movementChangeFrequency = creatureData.movementChangeFrequency;
         this.movementChangeInterval = Math.random() * 2000 + 1000;
         this.lastMovementChangeTime = 0;
 
@@ -587,11 +588,9 @@ export class Creature {
     update(currentTime) {
         // Solo aplica movimiento independiente si no está en un cardumen.
         if (!this.isSchooling) {
-            if (currentTime - this.lastMovementChangeTime > this.movementChangeInterval) {
+            if (Math.random() < this.movementChangeFrequency) {
                 this.velocity.x = (Math.random() - 0.5) * this.maxSpeed * 2;
                 this.velocity.y = (Math.random() - 0.5) * this.maxSpeed * 2;
-                this.lastMovementChangeTime = currentTime;
-                this.movementChangeInterval = Math.random() * 2000 + 1000;
             }
 
             this.x += this.velocity.x;
