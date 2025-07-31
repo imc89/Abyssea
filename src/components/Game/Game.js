@@ -136,7 +136,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
         const handleKeyDown = (e) => {
             const key = e.key.toLowerCase();
 
-            if (key === ' ' || key === 'enter') {
+            if ((key === ' ' || key === 'enter') && !isPaused) {
                 e.preventDefault();
             }
 

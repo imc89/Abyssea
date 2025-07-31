@@ -352,9 +352,9 @@ canvas {
 
 .close-button {
     position: absolute;
-    top: -280px;
+    top: -10px;
     /* Posición ajustada para estar encima de la imagen */
-    right: -160px;
+    right: -10px;
     /* Posición ajustada para estar encima de la imagen */
     background: #1a3a5e;
     /* Coincide con el fondo del modal */
