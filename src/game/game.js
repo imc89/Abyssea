@@ -759,12 +759,23 @@ export class School {
             }
         }
 
-        if (anyMemberCloseToSubmarine) {
-            this.isFleeing = true;
-            this.reuniting = false; // Deja de reunirte si el submarino está cerca de nuevo.
-            if (this.fleeingTimeout) {
-                clearTimeout(this.fleeingTimeout);
-                this.fleeingTimeout = null;
+        if (this.creatureTypeData.flees) {
+            if (anyMemberCloseToSubmarine) {
+                this.isFleeing = true;
+                this.reuniting = false; // Deja de reunirte si el submarino está cerca de nuevo.
+                if (this.fleeingTimeout) {
+                    clearTimeout(this.fleeingTimeout);
+                    this.fleeingTimeout = null;
+                }
+            } else if (this.isFleeing && !this.fleeingTimeout) {
+                // El submarino se alejó, inicia el temporizador de reunificación.
+                this.fleeingTimeout = setTimeout(() => {
+                    this.isFleeing = false;
+                    this.fleeingTimeout = null;
+                    this.reuniting = true; // Inicia la fase de reunificación.
+                    // Establece un tiempo de espera para finalizar la fase de reunificación.
+                    setTimeout(() => this.reuniting = false, 3000); // Reunirse durante 3 segundos.
+                }, this.reuniteDelay);
             }
         } else if (this.isFleeing && !this.fleeingTimeout) {
             // El submarino se alejó, inicia el temporizador de reunificación.
