@@ -304,14 +304,16 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 const visibleY = submarine.y - cameraY;
                 const centerX = submarine.x + submarine.width / 2;
                 const centerY = visibleY + submarine.height / 2;
-                const ambientGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, AMBIENT_LIGHT_RADIUS);
-                ambientGradient.addColorStop(0, `rgba(255, 255, 200, ${interpolatedDarknessLevel * AMBIENT_LIGHT_MAX_OPACITY})`);
-                ambientGradient.addColorStop(0.7, `rgba(255, 255, 200, ${interpolatedDarknessLevel * AMBIENT_LIGHT_MAX_OPACITY * 0.7})`);
-                ambientGradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
-                ctx.fillStyle = ambientGradient;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, AMBIENT_LIGHT_RADIUS, 0, Math.PI * 2);
-                ctx.fill();
+                if (isFinite(centerX) && isFinite(centerY) && isFinite(AMBIENT_LIGHT_RADIUS)) {
+                    const ambientGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, AMBIENT_LIGHT_RADIUS);
+                    ambientGradient.addColorStop(0, `rgba(255, 255, 200, ${interpolatedDarknessLevel * AMBIENT_LIGHT_MAX_OPACITY})`);
+                    ambientGradient.addColorStop(0.7, `rgba(255, 255, 200, ${interpolatedDarknessLevel * AMBIENT_LIGHT_MAX_OPACITY * 0.7})`);
+                    ambientGradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
+                    ctx.fillStyle = ambientGradient;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, AMBIENT_LIGHT_RADIUS, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             }
 
             // Dibuja el foco del submarino.
@@ -332,7 +334,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 const p3x = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
                 const p3y = lightSourceY + lightWidthAtEnd / 2;
 
-                if (isFinite(p1x) && isFinite(p1y) && isFinite(lightLength)) {
+                if (isFinite(p1x) && isFinite(p1y) && isFinite(lightLength) && lightLength > 0) {
                     const spotlightGradient = ctx.createRadialGradient(
                         p1x, p1y, 0,
                         p1x, p1y, lightLength
@@ -357,19 +359,21 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 const creatureCenterX = creature.x + creature.width / 2;
                 const creatureCenterY = creature.y + creature.height / 2 - cameraY + creature.lightOffsetY;
                 const lightRadius = creature.lightRadius;
-                const lightColor = creature.lightColor;
 
-                const currentLightOpacity = creature.lightOpacity;
-                const finalLightColor = lightColor.replace(/[^,]+(?=\))/, currentLightOpacity.toFixed(2));
+                if (isFinite(creatureCenterX) && isFinite(creatureCenterY) && isFinite(lightRadius) && lightRadius > 0) {
+                    const lightColor = creature.lightColor;
+                    const currentLightOpacity = creature.lightOpacity;
+                    const finalLightColor = lightColor.replace(/[^,]+(?=\))/, currentLightOpacity.toFixed(2));
 
-                const creatureLightGradient = ctx.createRadialGradient(creatureCenterX, creatureCenterY, 0, creatureCenterX, creatureCenterY, lightRadius);
-                creatureLightGradient.addColorStop(0, finalLightColor);
-                creatureLightGradient.addColorStop(1, finalLightColor.replace(/[^,]+(?=\))/, '0'));
+                    const creatureLightGradient = ctx.createRadialGradient(creatureCenterX, creatureCenterY, 0, creatureCenterX, creatureCenterY, lightRadius);
+                    creatureLightGradient.addColorStop(0, finalLightColor);
+                    creatureLightGradient.addColorStop(1, finalLightColor.replace(/[^,]+(?=\))/, '0'));
 
-                ctx.fillStyle = creatureLightGradient;
-                ctx.beginPath();
-                ctx.arc(creatureCenterX, creatureCenterY, lightRadius, 0, Math.PI * 2);
-                ctx.fill();
+                    ctx.fillStyle = creatureLightGradient;
+                    ctx.beginPath();
+                    ctx.arc(creatureCenterX, creatureCenterY, lightRadius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             }
 
             ctx.restore();

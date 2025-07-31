@@ -862,23 +862,18 @@ export class School {
 
             let boundaryAvoidance = { x: 0, y: 0 };
             const margin = 50;
-            const turnFactor = 0.5;
+            const turnFactor = 1.5;
 
             if (member.x < margin) {
-                boundaryAvoidance.x += turnFactor;
+                boundaryAvoidance.x = turnFactor;
             } else if (member.x > this.canvas.width - margin - member.width) {
-                boundaryAvoidance.x -= turnFactor;
+                boundaryAvoidance.x = -turnFactor;
             }
 
             if (member.y < this.worldMinY + margin) {
-                boundaryAvoidance.y += turnFactor;
+                boundaryAvoidance.y = turnFactor;
             } else if (member.y > this.worldMaxY - margin - member.height) {
-                boundaryAvoidance.y -= turnFactor;
-            }
-            const magBoundary = Math.sqrt(boundaryAvoidance.x ** 2 + boundaryAvoidance.y ** 2);
-            if (magBoundary > 0) {
-                boundaryAvoidance.x /= magBoundary;
-                boundaryAvoidance.y /= magBoundary;
+                boundaryAvoidance.y = -turnFactor;
             }
 
             // Agrega una pequeña fuerza aleatoria para un movimiento más natural.
@@ -935,6 +930,13 @@ export class School {
 
             member.x += member.velocity.x;
             member.y += member.velocity.y;
+
+            if (member.x <= 0 || member.x >= this.canvas.width - member.width) {
+                member.velocity.x *= -1;
+            }
+            if (member.y <= this.worldMinY || member.y >= this.worldMaxY - member.height) {
+                member.velocity.y *= -1;
+            }
 
             member.y = Math.max(this.worldMinY, Math.min(member.y, this.worldMaxY - member.height));
             member.x = Math.max(0, Math.min(member.x, this.canvas.width - member.width));
