@@ -9,6 +9,7 @@ export const creatureData = [
         scale: 1.0,
         minDepth: 200,
         maxDepth: 4000,
+        numInstances: 15,
     },
     {
         id: 'pezFantasma',
@@ -23,6 +24,7 @@ export const creatureData = [
         lightOffsetY: -20,
         minDepth: 200,
         maxDepth: 4000,
+        numInstances: 8,
     },
     {
         id: 'calamarMesopelagico',
@@ -33,5 +35,6 @@ export const creatureData = [
         scale: 0.85,
         minDepth: 200,
         maxDepth: 1000,
+        numInstances: 5,
     }
 ];

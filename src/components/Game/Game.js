@@ -95,7 +95,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
 
                 // For simplicity, we'll create a school for each creature type for now.
                 // You could add a property to creatureData to distinguish between schooling and individual creatures.
-                const numCreatures = 10; // Or get this from creatureData
+                const numCreatures = creatureInfo.numInstances; // Or get this from creatureData
                 creatureSchools[creatureInfo.id] = new School(creatureInfo, minDepthPixels, maxDepthPixels, numCreatures, canvas);
             });
         }
