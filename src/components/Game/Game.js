@@ -652,7 +652,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             window.removeEventListener('resize', throttledResizeCanvas);
             cancelAnimationFrame(animationFrameId);
         };
-    }, [isGameInitialized, onCreatureDiscovery, onGamePause, onShowCreatureModal]);
+    }, [isGameInitialized, onCreatureDiscovery]);
 
     // Renderiza el componente.
     return (
