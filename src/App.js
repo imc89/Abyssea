@@ -1,5 +1,5 @@
 // Importa las dependencias necesarias de React.
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 // Importa los estilos de la aplicación.
 import './App.css';
 // Importa los componentes del juego.
@@ -32,15 +32,15 @@ function App() {
   };
 
   // Manejador para registrar el descubrimiento de una criatura.
-  const handleCreatureDiscovery = (creatureId) => {
+  const handleCreatureDiscovery = useCallback((creatureId) => {
     setDiscoveredCreatures(prev => ({ ...prev, [creatureId]: true }));
-  };
+  }, []);
 
   // Manejador para mostrar el modal de una criatura.
-  const handleShowCreatureModal = (creature) => {
+  const handleShowCreatureModal = useCallback((creature) => {
     setSelectedCreature(creature);
     setCurrentScreen('creatureModal');
-  };
+  }, []);
 
   // Manejador para cerrar el modal de una criatura.
   const handleCloseCreatureModal = () => {
@@ -49,10 +49,10 @@ function App() {
   };
 
   // Manejador para pausar el juego.
-  const handleGamePause = () => {
+  const handleGamePause = useCallback(() => {
     setIsPaused(true);
     setCurrentScreen('pause');
-  };
+  }, []);
 
   // Manejador para reanudar el juego.
   const handleResumeGame = () => {
