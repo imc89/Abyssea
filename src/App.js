@@ -42,7 +42,6 @@ function App() {
   // Manejador para cerrar el modal de una criatura.
   const handleCloseCreatureModal = () => {
     setSelectedCreature(null);
-    setCurrentScreen('game');
   };
 
   // Manejador para pausar el juego.
