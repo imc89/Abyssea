@@ -353,8 +353,8 @@ export class Particle {
 
         // Si está en el foco, mejora la visibilidad
         if (isInSpotlight) {
-            adjustedAlpha = Math.min(1, adjustedAlpha * 1.5 + 0.2);
-            adjustedSize = Math.min(adjustedSize * 1.2, 4);
+            adjustedAlpha = Math.min(1, adjustedAlpha * 2.5 + 0.5);
+            adjustedSize = Math.min(adjustedSize * 1.5, 5);
         }
 
         ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, adjustedAlpha)})`;

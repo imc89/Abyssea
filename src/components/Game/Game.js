@@ -279,7 +279,8 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             // Actualiza y dibuja las partículas.
             particlePool.forEachActive(p => {
                 p.update(MAX_WORLD_DEPTH, ocean.height, submarine, canvas);
-                p.draw(ctx, cameraY, interpolatedDarknessLevel, false);
+                const particleInLight = submarine.isSpotlightOn && isPointInTriangle(p.x, p.y - cameraY, spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
+                p.draw(ctx, cameraY, interpolatedDarknessLevel, particleInLight);
             });
 
             // Actualiza y dibuja las burbujas.
@@ -501,13 +502,13 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 const p = particlePool.get();
                 const y = Math.random() * (MAX_WORLD_DEPTH - (ocean.height + 30)) + (ocean.height + 30);
                 const alpha = 0.1 + (y / MAX_WORLD_DEPTH) * 0.4;
-                p.init(Math.random() * canvas.width, y, (Math.random() * 0.6 - 0.3) + (Math.sin(y * 0.01) * 0.1), (Math.random() * 0.3 - 0.15) - 0.05, Math.random() * 1.5 + 0.8, alpha, 0, 'mote');
+                p.init(Math.random() * canvas.width, y, (Math.random() * 0.6 - 0.3) + (Math.sin(y * 0.01) * 0.1), (Math.random() * 0.3 - 0.15) - 0.05, Math.random() * 1.0 + 0.5, alpha, 0, 'mote');
             }
             for (let i = 0; i < numDebris; i++) {
                 const p = particlePool.get();
                 const y = Math.random() * (MAX_WORLD_DEPTH - (ocean.height + 30)) + (ocean.height + 30);
                 const alpha = 0.1 + (y / MAX_WORLD_DEPTH) * 0.3;
-                p.init(Math.random() * canvas.width, y, (Math.random() * 0.8 - 0.4) + (Math.cos(y * 0.005) * 0.2), (Math.random() * 0.5 - 0.25) - 0.1, Math.random() * 3 + 1.5, alpha, 0, 'debris');
+                p.init(Math.random() * canvas.width, y, (Math.random() * 0.8 - 0.4) + (Math.cos(y * 0.005) * 0.2), (Math.random() * 0.5 - 0.25) - 0.1, Math.random() * 2 + 1, alpha, 0, 'debris');
             }
         }, 100);
 
