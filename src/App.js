@@ -18,9 +18,6 @@ function App() {
   const [discoveredCreatures, setDiscoveredCreatures] = useState({});
   // Estado para la criatura seleccionada en el modal.
   const [selectedCreature, setSelectedCreature] = useState(null);
-  // Estado para controlar si el juego está en pausa.
-  const [isPaused, setIsPaused] = useState(false);
-
   // Manejador para iniciar el juego.
   const handleStartGame = () => {
     setCurrentScreen('tutorial');
@@ -50,19 +47,16 @@ function App() {
 
   // Manejador para pausar el juego.
   const handleGamePause = () => {
-    setIsPaused(true);
     setCurrentScreen('pause');
   };
 
   // Manejador para reanudar el juego.
   const handleResumeGame = () => {
-    setIsPaused(false);
     setCurrentScreen('game');
   };
 
   // Manejador para volver al menú principal.
   const handleBackToMenu = () => {
-    setIsPaused(false);
     setCurrentScreen('mainMenu');
   };
 
