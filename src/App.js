@@ -42,6 +42,7 @@ function App() {
   // Manejador para cerrar el modal de una criatura.
   const handleCloseCreatureModal = () => {
     setSelectedCreature(null);
+    setCurrentScreen('game');
   };
 
   // Manejador para pausar el juego.
@@ -77,19 +78,12 @@ function App() {
       case 'tutorial':
         return <Tutorial onClose={handleCloseTutorial} />;
       case 'game':
-      case 'creatureModal':
-      case 'pause':
         return (
-          <>
-            <Game
-              onCreatureDiscovery={handleCreatureDiscovery}
-              onGamePause={handleGamePause}
-              onShowCreatureModal={handleShowCreatureModal}
-              paused={currentScreen === 'creatureModal' || currentScreen === 'pause'}
-            />
-            {currentScreen === 'creatureModal' && <CreatureModal creature={selectedCreature} onClose={handleCloseCreatureModal} />}
-            {currentScreen === 'pause' && <PauseMenu onResume={handleResumeGame} onBackToMenu={handleBackToMenu} />}
-          </>
+          <Game
+            onCreatureDiscovery={handleCreatureDiscovery}
+            onGamePause={handleGamePause}
+            onShowCreatureModal={handleShowCreatureModal}
+          />
         );
       case 'gallery':
         return (
@@ -99,6 +93,10 @@ function App() {
             onClose={handleCloseGallery}
           />
         );
+      case 'creatureModal':
+        return <CreatureModal creature={selectedCreature} onClose={handleCloseCreatureModal} />;
+      case 'pause':
+        return <PauseMenu onResume={handleResumeGame} onBackToMenu={handleBackToMenu} />;
       default:
         return <MainMenu onStartGame={handleStartGame} onShowGallery={handleShowGallery} />;
     }
