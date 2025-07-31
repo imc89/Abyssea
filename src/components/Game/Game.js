@@ -89,45 +89,15 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             individualCreatures.forEach(creature => creature.removeElement());
             individualCreatures.length = 0;
 
-            const numEpipelagicCreatures = 15;
-            const creatureWorldMinYEpipelagic = ocean.height + 50;
-            const epipelagicZone = ZONE_COLORS.find(z => z.name.includes("Epipelágica"));
-            const creatureWorldMaxYEpipelagic = epipelagicZone.depth + (200 * PIXELS_PER_METER) - 50;
-            const epipelagicCreatureData = creatureData.find(c => c.id === 'pezLinterna');
-            if (epipelagicCreatureData) {
-                creatureSchools.epipelagic = new School(epipelagicCreatureData, creatureWorldMinYEpipelagic, creatureWorldMaxYEpipelagic, numEpipelagicCreatures, canvas);
-            }
+            creatureData.forEach(creatureInfo => {
+                const minDepthPixels = creatureInfo.minDepth * PIXELS_PER_METER;
+                const maxDepthPixels = creatureInfo.maxDepth * PIXELS_PER_METER;
 
-            const numMesopelagicSquidCreatures = 5;
-            const numMesopelagicGhostFish = 8;
-            const mesopelagicZoneStart = ZONE_COLORS.find(z => z.name.includes("Mesopelágica") && z.depth === 200 * PIXELS_PER_METER);
-            const bathypelagicZoneStart = ZONE_COLORS.find(z => z.name.includes("Batipelágica"));
-            const mesopelagicCreatureWorldMinY = mesopelagicZoneStart.depth + 50;
-            const mesopelagicCreatureWorldMaxY = bathypelagicZoneStart.depth - 50;
-
-            const squidCreatureData = creatureData.find(c => c.id === 'calamarMesopelagico');
-            if (squidCreatureData) {
-                for (let i = 0; i < numMesopelagicSquidCreatures; i++) {
-                    individualCreatures.push(new Creature(squidCreatureData, mesopelagicCreatureWorldMinY, mesopelagicCreatureWorldMaxY, canvas));
-                }
-            }
-            const ghostCreatureData = creatureData.find(c => c.id === 'pezFantasma');
-            if (ghostCreatureData) {
-                for (let i = 0; i < numMesopelagicGhostFish; i++) {
-                    individualCreatures.push(new Creature(ghostCreatureData, mesopelagicCreatureWorldMinY, mesopelagicCreatureWorldMaxY, canvas));
-                }
-            }
-
-            const numBatipelagicGhostFish = 12;
-            const abyssopelagicZoneStart = ZONE_COLORS.find(z => z.name.includes("Abisopelágica"));
-            const batipelagicCreatureWorldMinY = bathypelagicZoneStart.depth + 50;
-            const batipelagicCreatureWorldMaxY = abyssopelagicZoneStart.depth - 50;
-
-            if (ghostCreatureData) {
-                for (let i = 0; i < numBatipelagicGhostFish; i++) {
-                    individualCreatures.push(new Creature(ghostCreatureData, batipelagicCreatureWorldMinY, batipelagicCreatureWorldMaxY, canvas));
-                }
-            }
+                // For simplicity, we'll create a school for each creature type for now.
+                // You could add a property to creatureData to distinguish between schooling and individual creatures.
+                const numCreatures = 10; // Or get this from creatureData
+                creatureSchools[creatureInfo.id] = new School(creatureInfo, minDepthPixels, maxDepthPixels, numCreatures, canvas);
+            });
         }
 
         // Objeto para almacenar el estado de las teclas.
@@ -201,10 +171,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             const subCenterX = submarine.x + submarine.width / 2;
             const subCenterY = submarine.y + submarine.height / 2;
 
-            const allCreatures = [
-                ...(creatureSchools.epipelagic ? creatureSchools.epipelagic.members : []),
-                ...individualCreatures
-            ];
+            const allCreatures = Object.values(creatureSchools).flatMap(school => school.members);
 
             for (const creature of allCreatures) {
                 const creatureCenterX = creature.x + creature.width / 2;
@@ -301,13 +268,9 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             const creaturesInLight = submarine.isSpotlightOn ? getCreaturesInLight() : [];
 
             // Actualiza y dibuja las criaturas.
-            if (creatureSchools.epipelagic) {
-                creatureSchools.epipelagic.update(currentTime, submarine);
-                creatureSchools.epipelagic.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
-            }
-            individualCreatures.forEach(creature => {
-                creature.update(currentTime);
-                creature.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
+            Object.values(creatureSchools).forEach(school => {
+                school.update(currentTime, submarine);
+                school.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
             });
 
             // Dibuja el océano.
@@ -389,29 +352,24 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             }
 
             // Dibuja las luces de las criaturas.
-            const allCreatures = [
-                ...(creatureSchools.epipelagic ? creatureSchools.epipelagic.members : []),
-                ...individualCreatures
-            ];
-            for (const creature of allCreatures) {
-                if (creature.hasLight) {
-                    const creatureCenterX = creature.x + creature.width / 2;
-                    const creatureCenterY = creature.y + creature.height / 2 - cameraY + creature.lightOffsetY;
-                    const lightRadius = creature.lightRadius;
-                    const lightColor = creature.lightColor;
+            const allCreaturesWithLights = Object.values(creatureSchools).flatMap(school => school.members.filter(member => member.hasLight));
+            for (const creature of allCreaturesWithLights) {
+                const creatureCenterX = creature.x + creature.width / 2;
+                const creatureCenterY = creature.y + creature.height / 2 - cameraY + creature.lightOffsetY;
+                const lightRadius = creature.lightRadius;
+                const lightColor = creature.lightColor;
 
-                    const currentLightOpacity = creature.lightOpacity;
-                    const finalLightColor = lightColor.replace(/[^,]+(?=\))/, currentLightOpacity.toFixed(2));
+                const currentLightOpacity = creature.lightOpacity;
+                const finalLightColor = lightColor.replace(/[^,]+(?=\))/, currentLightOpacity.toFixed(2));
 
-                    const creatureLightGradient = ctx.createRadialGradient(creatureCenterX, creatureCenterY, 0, creatureCenterX, creatureCenterY, lightRadius);
-                    creatureLightGradient.addColorStop(0, finalLightColor);
-                    creatureLightGradient.addColorStop(1, finalLightColor.replace(/[^,]+(?=\))/, '0'));
+                const creatureLightGradient = ctx.createRadialGradient(creatureCenterX, creatureCenterY, 0, creatureCenterX, creatureCenterY, lightRadius);
+                creatureLightGradient.addColorStop(0, finalLightColor);
+                creatureLightGradient.addColorStop(1, finalLightColor.replace(/[^,]+(?=\))/, '0'));
 
-                    ctx.fillStyle = creatureLightGradient;
-                    ctx.beginPath();
-                    ctx.arc(creatureCenterX, creatureCenterY, lightRadius, 0, Math.PI * 2);
-                    ctx.fill();
-                }
+                ctx.fillStyle = creatureLightGradient;
+                ctx.beginPath();
+                ctx.arc(creatureCenterX, creatureCenterY, lightRadius, 0, Math.PI * 2);
+                ctx.fill();
             }
 
             ctx.restore();
