@@ -234,9 +234,9 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, paused })
 
         // Bucle principal del juego.
         function gameLoop(currentTime) {
-            if (paused) {
-                animationFrameId = requestAnimationFrame(gameLoop);
-                return;
+            if (!paused) {
+                handleInput();
+                cameraY = submarine.update(currentTime, canvas, cameraY);
             }
 
             // Lógica de la zona actual.
@@ -282,9 +282,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, paused })
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Actualiza los objetos del juego.
-            handleInput();
             ocean.update();
-            cameraY = submarine.update(currentTime, canvas, cameraY);
 
             const creaturesInLight = submarine.isSpotlightOn ? getCreaturesInLight() : [];
 
