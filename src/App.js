@@ -1,5 +1,5 @@
 // Importa las dependencias necesarias de React.
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 // Importa los estilos de la aplicación.
 import './App.css';
 // Importa los componentes del juego.
