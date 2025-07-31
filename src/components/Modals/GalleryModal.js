@@ -1,7 +1,7 @@
 // Importa las dependencias necesarias de React.
 import React from 'react';
 // Importa los datos de las criaturas.
-import { creatureData } from '../../game/constants';
+import { creatureData } from '../../game/creatures';
 
 // Componente para mostrar el modal de la galería.
 const GalleryModal = ({ discoveredCreatures, onShowCreatureModal, onClose }) => {
