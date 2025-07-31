@@ -7,6 +7,7 @@ export const SPOTLIGHT_CHARGE_RATE = 0.03; // Tasa de recarga de batería del fo
 export const AMBIENT_LIGHT_RADIUS = 80; // Radio de la luz ambiental.
 export const AMBIENT_LIGHT_MAX_OPACITY = 0.5; // Opacidad máxima de la luz ambiental.
 export const SUBMARINE_IMAGE_URL = 'https://i.ibb.co/dwPyHB8L/submarine.gif'; // URL de la imagen del submarino.
+export const SUBMARINE_STATIC_IMAGE_URL = 'https://i.ibb.co/ympgPXB0/submarine-static.png';
 
 // Define colores y niveles de oscuridad para diferentes zonas de profundidad.
 export const ZONE_COLORS = [

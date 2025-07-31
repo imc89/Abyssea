@@ -48,7 +48,7 @@ export class Ocean {
  * Representa el submarino del jugador.
  */
 export class Submarine {
-    constructor(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH) {
+    constructor(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SUBMARINE_STATIC_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH) {
         this.ocean = ocean; // Instancia del océano.
         this.bubblePool = bubblePool; // Pool de burbujas.
         this.image = preloadedImages[SUBMARINE_IMAGE_URL]; // Imagen del submarino.
@@ -83,6 +83,8 @@ export class Submarine {
         this.element = document.getElementById('submarineElement');
         this.imageElement = this.element.querySelector('img');
         this.imageElement.src = SUBMARINE_IMAGE_URL;
+        this.animatedImageUrl = SUBMARINE_IMAGE_URL;
+        this.staticImageUrl = SUBMARINE_STATIC_IMAGE_URL;
         this.element.style.width = `${this.width}px`;
         this.element.style.height = `${this.height}px`;
 
@@ -129,6 +131,17 @@ export class Submarine {
      * @param {number} currentTime - Tiempo actual del juego.
      */
     update(currentTime, canvas, cameraY) {
+        const isMoving = this.horizontalDirection !== 0 || this.verticalDirection !== 0;
+
+        if (isMoving) {
+            if (this.imageElement.src !== this.animatedImageUrl) {
+                this.imageElement.src = this.animatedImageUrl;
+            }
+        } else {
+            if (this.imageElement.src !== this.staticImageUrl) {
+                this.imageElement.src = this.staticImageUrl;
+            }
+        }
         const waveInfluenceFactor = 0.15;
 
         this.x += this.horizontalDirection * this.horizontalSpeed;
