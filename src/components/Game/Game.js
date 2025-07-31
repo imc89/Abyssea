@@ -12,7 +12,7 @@ import {
 } from '../../game/constants';
 
 // Componente principal del juego.
-const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
+const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused }) => {
     // Referencias a los elementos del DOM.
     const canvasRef = useRef(null);
     const gameContainerRef = useRef(null);
@@ -59,7 +59,6 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
         // Estado del juego.
         const gameState = {
             currentScreen: 'game',
-            gamePaused: false,
             discoveredCreatures: {},
             userId: null,
             db: null,
@@ -224,7 +223,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal }) => {
 
         // Bucle principal del juego.
         function gameLoop(currentTime) {
-            if (gameState.gamePaused) {
+            if (isPaused) {
                 animationFrameId.current = requestAnimationFrame(gameLoop);
                 return;
             }

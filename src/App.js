@@ -14,6 +14,7 @@ import Tutorial from './components/Modals/Tutorial';
 function App() {
   // Estado para controlar la pantalla actual.
   const [currentScreen, setCurrentScreen] = useState('mainMenu');
+  const [isPaused, setIsPaused] = useState(false);
   // Estado para almacenar las criaturas descubiertas.
   const [discoveredCreatures, setDiscoveredCreatures] = useState({});
   // Estado para la criatura seleccionada en el modal.
@@ -22,6 +23,14 @@ function App() {
   const handleStartGame = () => {
     setCurrentScreen('tutorial');
   };
+
+  useEffect(() => {
+    if (currentScreen === 'pause' || currentScreen === 'creatureModal') {
+      setIsPaused(true);
+    } else {
+      setIsPaused(false);
+    }
+  }, [currentScreen]);
 
   // Manejador para mostrar la galería.
   const handleShowGallery = () => {
@@ -71,23 +80,34 @@ function App() {
 
   // Función para renderizar la pantalla actual.
   const renderScreen = () => {
+    const gameComponent = (
+      <Game
+        onCreatureDiscovery={handleCreatureDiscovery}
+        onGamePause={handleGamePause}
+        onShowCreatureModal={handleShowCreatureModal}
+        isPaused={isPaused}
+      />
+    );
+
     switch (currentScreen) {
       case 'mainMenu':
         return <MainMenu onStartGame={handleStartGame} onShowGallery={handleShowGallery} />;
       case 'tutorial':
         return <Tutorial onClose={handleCloseTutorial} />;
       case 'game':
+        return gameComponent;
       case 'creatureModal':
+        return (
+          <>
+            {gameComponent}
+            <CreatureModal creature={selectedCreature} onClose={handleCloseCreatureModal} />
+          </>
+        );
       case 'pause':
         return (
           <>
-            <Game
-              onCreatureDiscovery={handleCreatureDiscovery}
-              onGamePause={handleGamePause}
-              onShowCreatureModal={handleShowCreatureModal}
-            />
-            {currentScreen === 'creatureModal' && <CreatureModal creature={selectedCreature} onClose={handleCloseCreatureModal} />}
-            {currentScreen === 'pause' && <PauseMenu onResume={handleResumeGame} onBackToMenu={handleBackToMenu} />}
+            {gameComponent}
+            <PauseMenu onResume={handleResumeGame} onBackToMenu={handleBackToMenu} />
           </>
         );
       case 'gallery':
