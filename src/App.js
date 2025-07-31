@@ -1,5 +1,5 @@
 // Importa las dependencias necesarias de React.
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // Importa los estilos de la aplicación.
 import './App.css';
 // Importa los componentes del juego.
@@ -78,9 +78,10 @@ function App() {
     setCurrentScreen('game');
   };
 
-  // Función para renderizar la pantalla actual.
-  const renderScreen = () => {
-    const gameComponent = (
+  const gameComponentRef = useRef(null);
+
+  if (currentScreen === 'game' && !gameComponentRef.current) {
+    gameComponentRef.current = (
       <Game
         onCreatureDiscovery={handleCreatureDiscovery}
         onGamePause={handleGamePause}
@@ -88,25 +89,28 @@ function App() {
         isPaused={isPaused}
       />
     );
+  }
 
+  // Función para renderizar la pantalla actual.
+  const renderScreen = () => {
     switch (currentScreen) {
       case 'mainMenu':
         return <MainMenu onStartGame={handleStartGame} onShowGallery={handleShowGallery} />;
       case 'tutorial':
         return <Tutorial onClose={handleCloseTutorial} />;
       case 'game':
-        return gameComponent;
+        return gameComponentRef.current;
       case 'creatureModal':
         return (
           <>
-            {gameComponent}
+            {gameComponentRef.current}
             <CreatureModal creature={selectedCreature} onClose={handleCloseCreatureModal} />
           </>
         );
       case 'pause':
         return (
           <>
-            {gameComponent}
+            {gameComponentRef.current}
             <PauseMenu onResume={handleResumeGame} onBackToMenu={handleBackToMenu} />
           </>
         );

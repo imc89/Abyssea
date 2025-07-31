@@ -78,6 +78,7 @@ export class Submarine {
         this.batteryLevel = SPOTLIGHT_MAX_BATTERY;
         this.isSpotlightOn = false;
         this.isSurfaced = false;
+        this.isPaused = false;
 
         // Elementos del DOM.
         this.element = document.getElementById('submarineElement');
@@ -131,6 +132,9 @@ export class Submarine {
      * @param {number} currentTime - Tiempo actual del juego.
      */
     update(currentTime, canvas, cameraY) {
+        if (this.isPaused) {
+            return cameraY;
+        }
         const isMoving = this.horizontalDirection !== 0 || this.verticalDirection !== 0;
 
         if (isMoving) {

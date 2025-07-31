@@ -66,6 +66,10 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             appId: null,
         };
 
+        if (submarine.current) {
+            submarine.current.isPaused = isPaused;
+        }
+
         const preloadedImages = {};
 
         // Función para inicializar las criaturas del juego.
