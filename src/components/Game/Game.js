@@ -1,7 +1,7 @@
 // Importa las dependencias necesarias de React.
 import React, { useRef, useEffect, useState, memo } from 'react';
 // Importa las clases y funciones del juego.
-import { Ocean, Submarine, Particle, Bubble, ObjectPool, Creature, School } from '../../game/game';
+import { Ocean, Submarine, Particle, Bubble, ObjectPool, School } from '../../game/game';
 // Importa las funciones de utilidad.
 import { lerp, showZoneMessage, isPointInTriangle, throttle, preloadImages } from '../../utils/utils';
 // Importa las constantes del juego.
@@ -182,7 +182,19 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 return;
             }
 
-            const creatures = getCreaturesInLight();
+            const lightLength = 200;
+            const lightWidthAtEnd = 80;
+            const visibleSubY = submarine.y - cameraY;
+            const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * 0.8 : submarine.width * 0.2);
+            const lightSourceY = visibleSubY + submarine.height * 0.6;
+
+            const spotlightP1X = lightSourceX;
+            const spotlightP1Y = lightSourceY;
+            const spotlightP2X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
+            const spotlightP2Y = lightSourceY - lightWidthAtEnd / 2;
+            const spotlightP3X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
+            const spotlightP3Y = lightSourceY + lightWidthAtEnd / 2;
+            const creatures = getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
             if (creatures.length > 0) {
                 const foundCreature = creatures[0];
                 onShowCreatureModal(foundCreature);
@@ -627,7 +639,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             window.removeEventListener('resize', throttledResizeCanvas);
             cancelAnimationFrame(animationFrameId);
         };
-    }, [isGameInitialized, onCreatureDiscovery, onGamePause, onShowCreatureModal]);
+    }, [isGameInitialized, onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused]);
 
     // Renderiza el componente.
     return (
