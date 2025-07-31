@@ -134,22 +134,30 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
 
         // Manejador para el evento de presionar una tecla.
         const handleKeyDown = (e) => {
+            if (isPaused) {
+                // Si el juego está en pausa, solo escucha 'Escape' para reanudar,
+                // pero deja que otros eventos de tecla (como Enter para el modal) se propaguen.
+                if (e.key === 'Escape') {
+                    onGamePause();
+                }
+                return;
+            }
+
             const key = e.key.toLowerCase();
 
-            if ((key === ' ' || key === 'enter') && !isPaused) {
+            // Previene el comportamiento predeterminado solo cuando el juego está activo.
+            if (key === ' ' || key === 'enter') {
                 e.preventDefault();
             }
 
             keys[key] = true;
 
-            if ((key === ' ' || key === 'spacebar') && !e.repeat && gameState.currentScreen === 'game') {
+            if ((key === ' ' || key === 'spacebar') && !e.repeat) {
                 submarine.isSpotlightOn = !submarine.isSpotlightOn;
             }
 
             if (key === 'enter' && !e.repeat) {
-                if (gameState.currentScreen === 'game') {
-                    handleEnterPress();
-                }
+                handleEnterPress();
             }
 
             if (key === 'escape') {
