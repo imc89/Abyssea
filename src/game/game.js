@@ -746,22 +746,21 @@ export class School {
      * @param {Submarine} submarine - Instancia del submarino para interacción.
      */
     update(currentTime, submarine) {
-        let anyMemberCloseToSubmarine = false;
-
-        // Comprueba la proximidad del submarino.
+        let isColliding = false;
         for (const member of this.members) {
-            const distToSub = Math.sqrt(
-                (member.x + member.width / 2 - (submarine.x + submarine.width / 2)) ** 2 +
-                (member.y + member.height / 2 - (submarine.y + submarine.height / 2)) ** 2
-            );
-            if (distToSub < this.fleeRadius) {
-                anyMemberCloseToSubmarine = true;
+            if (
+                submarine.x < member.x + member.width &&
+                submarine.x + submarine.width > member.x &&
+                submarine.y < member.y + member.height &&
+                submarine.y + submarine.height > member.y
+            ) {
+                isColliding = true;
                 break;
             }
         }
 
         if (this.creatureTypeData.flees) {
-            if (anyMemberCloseToSubmarine && !this.isFleeing) {
+            if (isColliding && !this.isFleeing) {
                 this.isFleeing = true;
                 this.reuniting = false;
                 if (this.fleeingTimeout) {
@@ -777,7 +776,7 @@ export class School {
                 this.leader.velocity.x = Math.cos(angle) * this.fleeSpeed * 1.5;
                 this.leader.velocity.y = Math.sin(angle) * this.fleeSpeed * 1.5;
 
-            } else if (this.isFleeing && !anyMemberCloseToSubmarine && !this.fleeingTimeout) {
+            } else if (this.isFleeing && !isColliding && !this.fleeingTimeout) {
                 this.fleeingTimeout = setTimeout(() => {
                     this.isFleeing = false;
                     this.fleeingTimeout = null;
