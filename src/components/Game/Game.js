@@ -32,11 +32,14 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
     // Efecto para precargar las imágenes del juego.
     useEffect(() => {
         const imageUrlsToPreload = creatureData.map(c => c.imageSrc);
-        imageUrlsToPreload.push(SUBMARINE_IMAGE_URL);
-        preloadImages(imageUrlsToPreload, {}).then(() => {
+        imageUrlsToPreload.push(SUBMARINE_IMAGE_URL, SUBMARINE_STATIC_IMAGE_URL);
+        preloadImages(imageUrlsToPreload).then((loadedImages) => {
+            preloadedImagesRef.current = loadedImages;
             setIsGameInitialized(true);
         });
     }, []);
+
+    const preloadedImagesRef = useRef({});
 
     // Efecto para inicializar y manejar el bucle del juego.
     useEffect(() => {
@@ -66,7 +69,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             appId: null,
         };
 
-        const preloadedImages = {};
+        const preloadedImages = preloadedImagesRef.current;
 
         // Instancias de los objetos del juego.
         const ocean = new Ocean();

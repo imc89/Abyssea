@@ -51,18 +51,19 @@ export class Submarine {
     constructor(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SUBMARINE_STATIC_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED) {
         this.ocean = ocean; // Instancia del océano.
         this.bubblePool = bubblePool; // Pool de burbujas.
-        this.image = preloadedImages[SUBMARINE_IMAGE_URL]; // Imagen del submarino.
+        this.animatedImage = preloadedImages[SUBMARINE_IMAGE_URL];
+        this.staticImage = preloadedImages[SUBMARINE_STATIC_IMAGE_URL];
         this.scaleFactor = SUBMARINE_SCALE_FACTOR; // Factor de escala del submarino.
 
         // Establece el tamaño del submarino.
-        if (!this.image) {
+        if (!this.animatedImage) {
             this.drawFallback = true;
             this.width = SUBMARINE_BASE_WIDTH * this.scaleFactor;
             this.height = SUBMARINE_BASE_HEIGHT * this.scaleFactor;
         } else {
             this.drawFallback = false;
-            this.width = this.image.naturalWidth * this.scaleFactor;
-            this.height = this.image.naturalHeight * this.scaleFactor;
+            this.width = this.animatedImage.naturalWidth * this.scaleFactor;
+            this.height = this.animatedImage.naturalHeight * this.scaleFactor;
         }
 
         // Propiedades del submarino.
@@ -83,9 +84,7 @@ export class Submarine {
         // Elementos del DOM.
         this.element = document.getElementById('submarineElement');
         this.imageElement = this.element.querySelector('img');
-        this.imageElement.src = SUBMARINE_IMAGE_URL;
-        this.animatedImageUrl = SUBMARINE_IMAGE_URL;
-        this.staticImageUrl = SUBMARINE_STATIC_IMAGE_URL;
+        this.imageElement.src = this.animatedImage ? this.animatedImage.src : '';
         this.element.style.width = `${this.width}px`;
         this.element.style.height = `${this.height}px`;
 
@@ -138,12 +137,12 @@ export class Submarine {
         const isMoving = this.horizontalDirection !== 0 || this.verticalDirection !== 0;
 
         if (isMoving) {
-            if (this.imageElement.src !== this.animatedImageUrl) {
-                this.imageElement.src = this.animatedImageUrl;
+            if (this.imageElement.src !== this.animatedImage.src) {
+                this.imageElement.src = this.animatedImage.src;
             }
         } else {
-            if (this.imageElement.src !== this.staticImageUrl) {
-                this.imageElement.src = this.staticImageUrl;
+            if (this.imageElement.src !== this.staticImage.src) {
+                this.imageElement.src = this.staticImage.src;
             }
         }
         const waveInfluenceFactor = 0.15;
