@@ -707,7 +707,7 @@ export class School {
         this.worldMaxY = worldMaxY;
 
         this.schoolingRadius = 100;
-        this.separationDistance = creatureTypeData.schoolingSeparation || 30;
+        this.separationDistance = 30 + (creatureTypeData.schoolingSeparation || 0) * 20;
         this.cohesionWeight = 0.1;
         this.alignmentWeight = 0.3;
         this.separationWeight = 0.2;
@@ -734,8 +734,8 @@ export class School {
                 worldMaxY,
                 canvas
             );
-            creature.x = centerX + (Math.random() - 0.5) * 50;
-            creature.y = centerY + (Math.random() - 0.5) * 50;
+            creature.x = centerX + (Math.random() - 0.5) * 100;
+            creature.y = centerY + (Math.random() - 0.5) * 100;
             creature.isSchooling = true;
             creature.maxSpeed = this.normalMaxSpeed; // Establece la velocidad máxima inicial.
             creature.maxForce = 0.05; // Fuerza máxima para una criatura individual.
