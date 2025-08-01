@@ -761,14 +761,23 @@ export class School {
         }
 
         if (this.creatureTypeData.flees) {
-            if (anyMemberCloseToSubmarine) {
+            if (anyMemberCloseToSubmarine && !this.isFleeing) {
                 this.isFleeing = true;
                 this.reuniting = false;
                 if (this.fleeingTimeout) {
                     clearTimeout(this.fleeingTimeout);
                     this.fleeingTimeout = null;
                 }
-            } else if (this.isFleeing && !this.fleeingTimeout) {
+
+                // Make the leader dash away
+                const angle = Math.atan2(
+                    this.leader.y + this.leader.height / 2 - (submarine.y + submarine.height / 2),
+                    this.leader.x + this.leader.width / 2 - (submarine.x + submarine.width / 2)
+                );
+                this.leader.velocity.x = Math.cos(angle) * this.fleeSpeed * 1.5;
+                this.leader.velocity.y = Math.sin(angle) * this.fleeSpeed * 1.5;
+
+            } else if (this.isFleeing && !anyMemberCloseToSubmarine && !this.fleeingTimeout) {
                 this.fleeingTimeout = setTimeout(() => {
                     this.isFleeing = false;
                     this.fleeingTimeout = null;
