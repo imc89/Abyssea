@@ -4,10 +4,13 @@ export const MAX_WORLD_DEPTH = 11000 * PIXELS_PER_METER; // Profundidad máxima 
 export const SPOTLIGHT_MAX_BATTERY = 100; // Batería máxima del foco.
 export const SPOTLIGHT_DRAIN_RATE = 0.01; // Tasa de consumo de batería del foco.
 export const SPOTLIGHT_CHARGE_RATE = 0.03; // Tasa de recarga de batería del foco.
-export const SPOTLIGHT_HORIZONTAL_OFFSET = 0.8; // Desplazamiento horizontal del foco (0.8 para la derecha, 0.2 para la izquierda).
-export const SPOTLIGHT_VERTICAL_OFFSET = 0.6; // Desplazamiento vertical del foco.
-export const SPOTLIGHT_LENGTH = 200; // Longitud del haz de luz del foco.
-export const SPOTLIGHT_WIDTH_AT_END = 80; // Ancho del haz de luz al final.
+// --- Spotlight Position and Shape ---
+// These constants control the position and shape of the submarine's spotlight.
+// The origin of the light is relative to the submarine's dimensions.
+export const SPOTLIGHT_HORIZONTAL_OFFSET = 0.8; // Horizontal position of the light source on the submarine. 0.8 means 80% from the left edge.
+export const SPOTLIGHT_VERTICAL_OFFSET = 0.6; // Vertical position of the light source on the submarine. 0.6 means 60% from the top edge.
+export const SPOTLIGHT_LENGTH = 350; // The length of the spotlight beam in pixels.
+export const SPOTLIGHT_WIDTH_AT_END = 150; // The width of the spotlight beam at its end in pixels.
 export const AMBIENT_LIGHT_RADIUS = 80; // Radio de la luz ambiental.
 export const AMBIENT_LIGHT_MAX_OPACITY = 0.5; // Opacidad máxima de la luz ambiental.
 export const SUBMARINE_IMAGE_URL = 'https://i.ibb.co/dwPyHB8L/submarine.gif'; // URL de la imagen del submarino.
