@@ -746,21 +746,14 @@ export class School {
      * @param {Submarine} submarine - Instancia del submarino para interacción.
      */
     update(currentTime, submarine) {
-        let isColliding = false;
-        for (const member of this.members) {
-            if (
-                submarine.x < member.x + member.width &&
-                submarine.x + submarine.width > member.x &&
-                submarine.y < member.y + member.height &&
-                submarine.y + submarine.height > member.y
-            ) {
-                isColliding = true;
-                break;
-            }
-        }
+        const isCollidingWithLeader =
+            submarine.x < this.leader.x + this.leader.width &&
+            submarine.x + submarine.width > this.leader.x &&
+            submarine.y < this.leader.y + this.leader.height &&
+            submarine.y + submarine.height > this.leader.y;
 
         if (this.creatureTypeData.flees) {
-            if (isColliding && !this.isFleeing) {
+            if (isCollidingWithLeader && !this.isFleeing) {
                 this.isFleeing = true;
                 this.reuniting = false;
                 if (this.fleeingTimeout) {
