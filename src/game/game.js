@@ -769,7 +769,7 @@ export class School {
                 this.leader.velocity.x = Math.cos(angle) * this.fleeSpeed * 1.5;
                 this.leader.velocity.y = Math.sin(angle) * this.fleeSpeed * 1.5;
 
-            } else if (this.isFleeing && !isColliding && !this.fleeingTimeout) {
+            } else if (this.isFleeing && !isCollidingWithLeader && !this.fleeingTimeout) {
                 this.fleeingTimeout = setTimeout(() => {
                     this.isFleeing = false;
                     this.fleeingTimeout = null;
