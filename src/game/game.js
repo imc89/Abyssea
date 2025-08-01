@@ -706,17 +706,17 @@ export class School {
         this.worldMinY = worldMinY;
         this.worldMaxY = worldMaxY;
 
-        this.schoolingRadius = 120;
-        this.separationDistance = 30;
-        this.cohesionWeight = 0.01;
-        this.alignmentWeight = 0.1;
-        this.separationWeight = 0.05;
-        this.boundaryWeight = 0.2;
-        this.fleeWeight = 1.5;
+        this.schoolingRadius = 150;
+        this.separationDistance = 20;
+        this.cohesionWeight = 0.05;
+        this.alignmentWeight = 0.25;
+        this.separationWeight = 0.1;
+        this.boundaryWeight = 0.5;
+        this.fleeWeight = 2.0;
 
-        this.normalMaxSpeed = 0.2; // Calmer speed
-        this.fleeSpeed = 5.0; // Faster flee
-        this.reuniteSpeed = 2.5; // Faster reunite
+        this.normalMaxSpeed = 0.1; // Calmer speed
+        this.fleeSpeed = 6.0; // Faster flee
+        this.reuniteSpeed = 3.0; // Faster reunite
 
         this.isFleeing = false;
         this.reuniting = false;
@@ -905,10 +905,10 @@ export class School {
             }
 
             const wanderForce = {
-                x: Math.cos(member.wanderAngle) * 0.1,
-                y: Math.sin(member.wanderAngle) * 0.1
+                x: Math.cos(member.wanderAngle) * 0.05,
+                y: Math.sin(member.wanderAngle) * 0.05
             };
-            member.wanderAngle += (Math.random() - 0.5) * 0.5;
+            member.wanderAngle += (Math.random() - 0.5) * 0.2;
 
             let forceX = separation.x * currentSeparationWeight +
                 alignment.x * currentAlignmentWeight +
