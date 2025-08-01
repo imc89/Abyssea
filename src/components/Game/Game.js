@@ -25,16 +25,6 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
     // Estado para controlar si el juego está inicializado.
     const [isGameInitialized, setIsGameInitialized] = useState(false);
 
-    // Crea referencias para las props para evitar que el useEffect se vuelva a ejecutar innecesariamente.
-    const onCreatureDiscoveryRef = useRef(onCreatureDiscovery);
-    onCreatureDiscoveryRef.current = onCreatureDiscovery;
-
-    const onGamePauseRef = useRef(onGamePause);
-    onGamePauseRef.current = onGamePause;
-
-    const onShowCreatureModalRef = useRef(onShowCreatureModal);
-    onShowCreatureModalRef.current = onShowCreatureModal;
-
     const isPausedRef = useRef(isPaused);
     isPausedRef.current = isPaused;
 
@@ -122,7 +112,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 // Si el juego está en pausa, solo escucha 'Escape' para reanudar,
                 // pero deja que otros eventos de tecla (como Enter para el modal) se propaguen.
                 if (e.key === 'Escape') {
-                    onGamePauseRef.current();
+                    onGamePause();
                 }
                 return;
             }
@@ -145,7 +135,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             }
 
             if (key === 'escape') {
-                onGamePauseRef.current();
+                onGamePause();
             }
         };
 
@@ -210,8 +200,8 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             const creatures = getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
             if (creatures.length > 0) {
                 const foundCreature = creatures[0];
-                onShowCreatureModalRef.current(foundCreature);
-                onCreatureDiscoveryRef.current(foundCreature.id, performance.now());
+                onShowCreatureModal(foundCreature);
+                onCreatureDiscovery(foundCreature.id, performance.now());
             }
         }
 
@@ -651,7 +641,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             window.removeEventListener('resize', throttledResizeCanvas);
             cancelAnimationFrame(animationFrameId);
         };
-    }, [isGameInitialized]);
+    }, [isGameInitialized, onCreatureDiscovery, onGamePause, onShowCreatureModal]);
 
     // Renderiza el componente.
     return (
