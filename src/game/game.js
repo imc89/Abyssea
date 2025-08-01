@@ -585,12 +585,28 @@ export class Creature {
      * Actualiza la posición y el estado de la criatura.
      * @param {number} currentTime - Tiempo actual del juego.
      */
-    update(currentTime) {
+    update(currentTime, submarine) {
         // Solo aplica movimiento independiente si no está en un cardumen.
         if (!this.isSchooling) {
-            if (Math.random() < this.movementChangeFrequency / 100) {
-                this.velocity.x = (Math.random() - 0.5) * this.maxSpeed * 2;
-                this.velocity.y = (Math.random() - 0.5) * this.maxSpeed * 2;
+            if (this.flees && submarine) {
+                const distToSub = Math.sqrt(
+                    (this.x + this.width / 2 - (submarine.x + submarine.width / 2)) ** 2 +
+                    (this.y + this.height / 2 - (submarine.y + submarine.height / 2)) ** 2
+                );
+
+                if (distToSub < 150) {
+                    const angle = Math.atan2(
+                        this.y + this.height / 2 - (submarine.y + submarine.height / 2),
+                        this.x + this.width / 2 - (submarine.x + submarine.width / 2)
+                    );
+                    this.velocity.x = Math.cos(angle) * 3;
+                    this.velocity.y = Math.sin(angle) * 3;
+                }
+            } else {
+                if (Math.random() < this.movementChangeFrequency / 100) {
+                    this.velocity.x = (Math.random() - 0.5) * this.maxSpeed * 2;
+                    this.velocity.y = (Math.random() - 0.5) * this.maxSpeed * 2;
+                }
             }
 
             this.x += this.velocity.x;

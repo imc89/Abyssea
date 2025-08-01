@@ -296,7 +296,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             });
 
             individualCreatures.forEach(creature => {
-                creature.update(currentTime);
+                creature.update(currentTime, submarine);
                 creature.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
             });
 
