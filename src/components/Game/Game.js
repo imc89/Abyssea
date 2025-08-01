@@ -192,10 +192,10 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
 
             const spotlightP1X = lightSourceX;
             const spotlightP1Y = lightSourceY;
-            const spotlightP2X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
-            const spotlightP2Y = lightSourceY - lightWidthAtEnd / 2;
-            const spotlightP3X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
-            const spotlightP3Y = lightSourceY + lightWidthAtEnd / 2;
+            const spotlightP2X = lightSourceX + (submarine.facingDirection === 1 ? SPOTLIGHT_LENGTH : -SPOTLIGHT_LENGTH);
+            const spotlightP2Y = lightSourceY - SPOTLIGHT_WIDTH_AT_END / 2;
+            const spotlightP3X = lightSourceX + (submarine.facingDirection === 1 ? SPOTLIGHT_LENGTH : -SPOTLIGHT_LENGTH);
+            const spotlightP3Y = lightSourceY + SPOTLIGHT_WIDTH_AT_END / 2;
             const creatures = getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
             if (creatures.length > 0) {
                 const foundCreature = creatures[0];
@@ -272,10 +272,10 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
 
             const spotlightP1X = lightSourceX;
             const spotlightP1Y = lightSourceY;
-            const spotlightP2X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
-            const spotlightP2Y = lightSourceY - lightWidthAtEnd / 2;
-            const spotlightP3X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
-            const spotlightP3Y = lightSourceY + lightWidthAtEnd / 2;
+            const spotlightP2X = lightSourceX + (submarine.facingDirection === 1 ? SPOTLIGHT_LENGTH : -SPOTLIGHT_LENGTH);
+            const spotlightP2Y = lightSourceY - SPOTLIGHT_WIDTH_AT_END / 2;
+            const spotlightP3X = lightSourceX + (submarine.facingDirection === 1 ? SPOTLIGHT_LENGTH : -SPOTLIGHT_LENGTH);
+            const spotlightP3Y = lightSourceY + SPOTLIGHT_WIDTH_AT_END / 2;
             const creaturesInLight = getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
 
             // Actualiza y dibuja las criaturas.
