@@ -7,8 +7,8 @@ export const SPOTLIGHT_CHARGE_RATE = 0.03; // Tasa de recarga de batería del fo
 // --- Spotlight Position and Shape ---
 // These constants control the position and shape of the submarine's spotlight.
 // The origin of the light is relative to the submarine's dimensions.
-export const SPOTLIGHT_HORIZONTAL_OFFSET = 1; // Horizontal position of the light source on the submarine. 0.8 means 80% from the left edge.
-export const SPOTLIGHT_VERTICAL_OFFSET = 0.6; // Vertical position of the light source on the submarine. 0.6 means 60% from the top edge.
+export const SPOTLIGHT_HORIZONTAL_OFFSET = 0.9; // Horizontal position of the light source on the submarine. 0.8 means 80% from the left edge.
+export const SPOTLIGHT_VERTICAL_OFFSET = 0.65; // Vertical position of the light source on the submarine. 0.6 means 60% from the top edge.
 export const SPOTLIGHT_LENGTH = 350; // The length of the spotlight beam in pixels.
 export const SPOTLIGHT_WIDTH_AT_END = 150; // The width of the spotlight beam at its end in pixels.
 export const AMBIENT_LIGHT_RADIUS = 100; // Radio de la luz ambiental.
