@@ -706,11 +706,11 @@ export class School {
         this.worldMinY = worldMinY;
         this.worldMaxY = worldMaxY;
 
-        this.schoolingRadius = 150;
-        this.separationDistance = creatureTypeData.schoolingSeparation || 20;
-        this.cohesionWeight = 0.05;
-        this.alignmentWeight = 0.25;
-        this.separationWeight = 0.1;
+        this.schoolingRadius = 100;
+        this.separationDistance = creatureTypeData.schoolingSeparation || 30;
+        this.cohesionWeight = 0.1;
+        this.alignmentWeight = 0.3;
+        this.separationWeight = 0.2;
         this.boundaryWeight = 0.5;
         this.fleeWeight = 2.0;
 
@@ -792,21 +792,27 @@ export class School {
         }
         const schoolFacingDirection = totalVelocityX >= 0 ? 1 : -1;
 
-        let centerX = 0;
-        let centerY = 0;
-        let nonLeaderCount = 0;
+        if (!this.isFleeing) {
+            // Leader's independent movement
+            this.leader.velocity.x += (Math.random() - 0.5) * 0.1;
+            this.leader.velocity.y += (Math.random() - 0.5) * 0.1;
 
-        this.members.forEach(member => {
-            if (member !== this.leader) {
-                centerX += member.x;
-                centerY += member.y;
-                nonLeaderCount++;
+            const mag = Math.sqrt(this.leader.velocity.x ** 2 + this.leader.velocity.y ** 2);
+            if (mag > this.normalMaxSpeed) {
+                this.leader.velocity.x = (this.leader.velocity.x / mag) * this.normalMaxSpeed;
+                this.leader.velocity.y = (this.leader.velocity.y / mag) * this.normalMaxSpeed;
             }
-        });
 
-        if (nonLeaderCount > 0) {
-            this.leader.x = centerX / nonLeaderCount;
-            this.leader.y = centerY / nonLeaderCount;
+            this.leader.x += this.leader.velocity.x;
+            this.leader.y += this.leader.velocity.y;
+
+            // Boundary check for the leader
+            if (this.leader.x < 0 || this.leader.x > this.canvas.width - this.leader.width) {
+                this.leader.velocity.x *= -1;
+            }
+            if (this.leader.y < this.worldMinY || this.leader.y > this.worldMaxY - this.leader.height) {
+                this.leader.velocity.y *= -1;
+            }
         }
 
 
