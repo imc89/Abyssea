@@ -353,8 +353,8 @@ export class Particle {
 
         // Si está en el foco, mejora la visibilidad
         if (isInSpotlight) {
-            adjustedAlpha = Math.min(1, adjustedAlpha * 1.5 + 0.2);
-            adjustedSize = Math.min(adjustedSize * 1.2, 4);
+            adjustedAlpha = Math.min(1, adjustedAlpha * 2.5 + 0.5);
+            adjustedSize = Math.min(adjustedSize * 1.5, 5);
         }
 
         ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, adjustedAlpha)})`;
@@ -540,8 +540,10 @@ export class Creature {
         this.maxScale = 1.05;
         this.isSchooling = false;
 
+        this.movementChangeFrequency = creatureData.movementChangeFrequency;
         this.movementChangeInterval = Math.random() * 2000 + 1000;
         this.lastMovementChangeTime = 0;
+        this.wanderAngle = Math.random() * 2 * Math.PI;
 
         this.lightOpacity = 0;
         this.lightFadeDirection = 1;
@@ -587,11 +589,9 @@ export class Creature {
     update(currentTime) {
         // Solo aplica movimiento independiente si no está en un cardumen.
         if (!this.isSchooling) {
-            if (currentTime - this.lastMovementChangeTime > this.movementChangeInterval) {
+            if (Math.random() < this.movementChangeFrequency / 100) {
                 this.velocity.x = (Math.random() - 0.5) * this.maxSpeed * 2;
                 this.velocity.y = (Math.random() - 0.5) * this.maxSpeed * 2;
-                this.lastMovementChangeTime = currentTime;
-                this.movementChangeInterval = Math.random() * 2000 + 1000;
             }
 
             this.x += this.velocity.x;
@@ -618,9 +618,10 @@ export class Creature {
         else if (this.scaleFactor <= this.minScale) { this.scaleFactor = this.minScale; this.scaleDirection = 1; }
 
         // Solo ajusta la dirección de la cara si no está en un cardumen (el cardumen maneja la dirección de sus miembros).
-        if (!this.isSchooling) {
-            if (this.velocity.x < 0) { this.facingDirection = -1; }
-            else if (this.velocity.x > 0) { this.facingDirection = 1; }
+        if (this.velocity.x < 0) {
+            this.facingDirection = -1;
+        } else if (this.velocity.x > 0) {
+            this.facingDirection = 1;
         }
 
         if (this.hasLight) {
@@ -759,12 +760,23 @@ export class School {
             }
         }
 
-        if (anyMemberCloseToSubmarine) {
-            this.isFleeing = true;
-            this.reuniting = false; // Deja de reunirte si el submarino está cerca de nuevo.
-            if (this.fleeingTimeout) {
-                clearTimeout(this.fleeingTimeout);
-                this.fleeingTimeout = null;
+        if (this.creatureTypeData.flees) {
+            if (anyMemberCloseToSubmarine) {
+                this.isFleeing = true;
+                this.reuniting = false; // Deja de reunirte si el submarino está cerca de nuevo.
+                if (this.fleeingTimeout) {
+                    clearTimeout(this.fleeingTimeout);
+                    this.fleeingTimeout = null;
+                }
+            } else if (this.isFleeing && !this.fleeingTimeout) {
+                // El submarino se alejó, inicia el temporizador de reunificación.
+                this.fleeingTimeout = setTimeout(() => {
+                    this.isFleeing = false;
+                    this.fleeingTimeout = null;
+                    this.reuniting = true; // Inicia la fase de reunificación.
+                    // Establece un tiempo de espera para finalizar la fase de reunificación.
+                    setTimeout(() => this.reuniting = false, 3000); // Reunirse durante 3 segundos.
+                }, this.reuniteDelay);
             }
         } else if (this.isFleeing && !this.fleeingTimeout) {
             // El submarino se alejó, inicia el temporizador de reunificación.
@@ -862,23 +874,18 @@ export class School {
 
             let boundaryAvoidance = { x: 0, y: 0 };
             const margin = 50;
-            const turnFactor = 0.5;
+            const turnFactor = 1.5;
 
             if (member.x < margin) {
-                boundaryAvoidance.x += turnFactor;
+                boundaryAvoidance.x = turnFactor;
             } else if (member.x > this.canvas.width - margin - member.width) {
-                boundaryAvoidance.x -= turnFactor;
+                boundaryAvoidance.x = -turnFactor;
             }
 
             if (member.y < this.worldMinY + margin) {
-                boundaryAvoidance.y += turnFactor;
+                boundaryAvoidance.y = turnFactor;
             } else if (member.y > this.worldMaxY - margin - member.height) {
-                boundaryAvoidance.y -= turnFactor;
-            }
-            const magBoundary = Math.sqrt(boundaryAvoidance.x ** 2 + boundaryAvoidance.y ** 2);
-            if (magBoundary > 0) {
-                boundaryAvoidance.x /= magBoundary;
-                boundaryAvoidance.y /= magBoundary;
+                boundaryAvoidance.y = -turnFactor;
             }
 
             // Agrega una pequeña fuerza aleatoria para un movimiento más natural.
@@ -904,19 +911,25 @@ export class School {
                 currentMaxSpeed = this.reuniteSpeed; // Reunificación más rápida.
             }
 
+            const wanderForce = {
+                x: Math.cos(member.wanderAngle) * 0.1,
+                y: Math.sin(member.wanderAngle) * 0.1
+            };
+            member.wanderAngle += (Math.random() - 0.5) * 0.5;
+
             let forceX = separation.x * currentSeparationWeight +
                 alignment.x * currentAlignmentWeight +
                 cohesion.x * currentCohesionWeight +
                 boundaryAvoidance.x * this.boundaryWeight +
                 fleeForce.x * this.fleeWeight +
-                randomForceX; // Agrega fuerza aleatoria.
+                wanderForce.x;
 
             let forceY = separation.y * currentSeparationWeight +
                 alignment.y * currentAlignmentWeight +
                 cohesion.y * currentCohesionWeight +
                 boundaryAvoidance.y * this.boundaryWeight +
                 fleeForce.y * this.fleeWeight +
-                randomForceY; // Agrega fuerza aleatoria.
+                wanderForce.y;
 
             const magForce = Math.sqrt(forceX ** 2 + forceY ** 2);
             if (magForce > member.maxForce) {
@@ -936,20 +949,16 @@ export class School {
             member.x += member.velocity.x;
             member.y += member.velocity.y;
 
+            if (member.x <= 0 || member.x >= this.canvas.width - member.width) {
+                member.velocity.x *= -1;
+            }
+            if (member.y <= this.worldMinY || member.y >= this.worldMaxY - member.height) {
+                member.velocity.y *= -1;
+            }
+
             member.y = Math.max(this.worldMinY, Math.min(member.y, this.worldMaxY - member.height));
             member.x = Math.max(0, Math.min(member.x, this.canvas.width - member.width));
 
-            // Ajusta la dirección de la cara según la dirección general del cardumen si no está huyendo.
-            if (!this.isFleeing) {
-                member.facingDirection = schoolFacingDirection;
-            } else {
-                // Al huir, se alejan del submarino.
-                if (fleeForce.x > 0) {
-                    member.facingDirection = 1;
-                } else if (fleeForce.x < 0) {
-                    member.facingDirection = -1;
-                }
-            }
 
             member.update(currentTime); // Actualización propia de la criatura para escalar/luz.
         });

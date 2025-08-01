@@ -1,15 +1,16 @@
 // Importa las dependencias necesarias de React.
 import React, { useRef, useEffect, useState, memo } from 'react';
 // Importa las clases y funciones del juego.
-import { Ocean, Submarine, Particle, Bubble, ObjectPool, Creature, School } from '../../game/game';
+import { Ocean, Submarine, Particle, Bubble, ObjectPool, School } from '../../game/game';
 // Importa las funciones de utilidad.
 import { lerp, showZoneMessage, isPointInTriangle, throttle, preloadImages } from '../../utils/utils';
 // Importa las constantes del juego.
 import {
     PIXELS_PER_METER, MAX_WORLD_DEPTH, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE,
     SPOTLIGHT_CHARGE_RATE, AMBIENT_LIGHT_RADIUS, AMBIENT_LIGHT_MAX_OPACITY, SUBMARINE_IMAGE_URL,
-    ZONE_COLORS, creatureData, SUBMARINE_STATIC_IMAGE_URL, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED
+    ZONE_COLORS, SUBMARINE_STATIC_IMAGE_URL, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED, PARTICLE_DENSITY_FACTOR
 } from '../../game/constants';
+import { creatureData } from '../../game/creatures';
 
 // Componente principal del juego.
 const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused }) => {
@@ -23,6 +24,19 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
     const radarCanvasRef = useRef(null);
     // Estado para controlar si el juego está inicializado.
     const [isGameInitialized, setIsGameInitialized] = useState(false);
+
+    // Crea referencias para las props para evitar que el useEffect se vuelva a ejecutar innecesariamente.
+    const onCreatureDiscoveryRef = useRef(onCreatureDiscovery);
+    onCreatureDiscoveryRef.current = onCreatureDiscovery;
+
+    const onGamePauseRef = useRef(onGamePause);
+    onGamePauseRef.current = onGamePause;
+
+    const onShowCreatureModalRef = useRef(onShowCreatureModal);
+    onShowCreatureModalRef.current = onShowCreatureModal;
+
+    const isPausedRef = useRef(isPaused);
+    isPausedRef.current = isPaused;
 
     // Efecto para precargar las imágenes del juego.
     useEffect(() => {
@@ -88,45 +102,15 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             individualCreatures.forEach(creature => creature.removeElement());
             individualCreatures.length = 0;
 
-            const numEpipelagicCreatures = 15;
-            const creatureWorldMinYEpipelagic = ocean.height + 50;
-            const epipelagicZone = ZONE_COLORS.find(z => z.name.includes("Epipelágica"));
-            const creatureWorldMaxYEpipelagic = epipelagicZone.depth + (200 * PIXELS_PER_METER) - 50;
-            const epipelagicCreatureData = creatureData.find(c => c.id === 'pezLinterna');
-            if (epipelagicCreatureData) {
-                creatureSchools.epipelagic = new School(epipelagicCreatureData, creatureWorldMinYEpipelagic, creatureWorldMaxYEpipelagic, numEpipelagicCreatures, canvas);
-            }
+            creatureData.forEach(creatureInfo => {
+                const minDepthPixels = creatureInfo.minDepth * PIXELS_PER_METER;
+                const maxDepthPixels = creatureInfo.maxDepth * PIXELS_PER_METER;
 
-            const numMesopelagicSquidCreatures = 5;
-            const numMesopelagicGhostFish = 8;
-            const mesopelagicZoneStart = ZONE_COLORS.find(z => z.name.includes("Mesopelágica") && z.depth === 200 * PIXELS_PER_METER);
-            const bathypelagicZoneStart = ZONE_COLORS.find(z => z.name.includes("Batipelágica"));
-            const mesopelagicCreatureWorldMinY = mesopelagicZoneStart.depth + 50;
-            const mesopelagicCreatureWorldMaxY = bathypelagicZoneStart.depth - 50;
-
-            const squidCreatureData = creatureData.find(c => c.id === 'calamarMesopelagico');
-            if (squidCreatureData) {
-                for (let i = 0; i < numMesopelagicSquidCreatures; i++) {
-                    individualCreatures.push(new Creature(squidCreatureData, mesopelagicCreatureWorldMinY, mesopelagicCreatureWorldMaxY, canvas));
-                }
-            }
-            const ghostCreatureData = creatureData.find(c => c.id === 'pezFantasma');
-            if (ghostCreatureData) {
-                for (let i = 0; i < numMesopelagicGhostFish; i++) {
-                    individualCreatures.push(new Creature(ghostCreatureData, mesopelagicCreatureWorldMinY, mesopelagicCreatureWorldMaxY, canvas));
-                }
-            }
-
-            const numBatipelagicGhostFish = 12;
-            const abyssopelagicZoneStart = ZONE_COLORS.find(z => z.name.includes("Abisopelágica"));
-            const batipelagicCreatureWorldMinY = bathypelagicZoneStart.depth + 50;
-            const batipelagicCreatureWorldMaxY = abyssopelagicZoneStart.depth - 50;
-
-            if (ghostCreatureData) {
-                for (let i = 0; i < numBatipelagicGhostFish; i++) {
-                    individualCreatures.push(new Creature(ghostCreatureData, batipelagicCreatureWorldMinY, batipelagicCreatureWorldMaxY, canvas));
-                }
-            }
+                // For simplicity, we'll create a school for each creature type for now.
+                // You could add a property to creatureData to distinguish between schooling and individual creatures.
+                const numCreatures = creatureInfo.numInstances; // Or get this from creatureData
+                creatureSchools[creatureInfo.id] = new School(creatureInfo, minDepthPixels, maxDepthPixels, numCreatures, canvas);
+            });
         }
 
         // Objeto para almacenar el estado de las teclas.
@@ -134,11 +118,11 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
 
         // Manejador para el evento de presionar una tecla.
         const handleKeyDown = (e) => {
-            if (isPaused) {
+            if (isPausedRef.current) {
                 // Si el juego está en pausa, solo escucha 'Escape' para reanudar,
                 // pero deja que otros eventos de tecla (como Enter para el modal) se propaguen.
                 if (e.key === 'Escape') {
-                    onGamePause();
+                    onGamePauseRef.current();
                 }
                 return;
             }
@@ -161,7 +145,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             }
 
             if (key === 'escape') {
-                onGamePause();
+                onGamePauseRef.current();
             }
         };
 
@@ -182,28 +166,12 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
         }
 
         // Función para obtener las criaturas que están en la luz del submarino.
-        function getCreaturesInLight() {
+        function getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y) {
             const creaturesInLight = [];
-            const lightLength = 200;
-            const lightWidthAtEnd = 80;
-            const visibleSubY = submarine.y - cameraY;
-            const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * 0.8 : submarine.width * 0.2);
-            const lightSourceY = visibleSubY + submarine.height * 0.6;
-
-            const spotlightP1X = lightSourceX;
-            const spotlightP1Y = lightSourceY;
-            const spotlightP2X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
-            const spotlightP2Y = lightSourceY - lightWidthAtEnd / 2;
-            const spotlightP3X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
-            const spotlightP3Y = lightSourceY + lightWidthAtEnd / 2;
-
             const subCenterX = submarine.x + submarine.width / 2;
             const subCenterY = submarine.y + submarine.height / 2;
 
-            const allCreatures = [
-                ...(creatureSchools.epipelagic ? creatureSchools.epipelagic.members : []),
-                ...individualCreatures
-            ];
+            const allCreatures = Object.values(creatureSchools).flatMap(school => school.members);
 
             for (const creature of allCreatures) {
                 const creatureCenterX = creature.x + creature.width / 2;
@@ -227,11 +195,23 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 return;
             }
 
-            const creatures = getCreaturesInLight();
+            const lightLength = 200;
+            const lightWidthAtEnd = 80;
+            const visibleSubY = submarine.y - cameraY;
+            const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * 0.8 : submarine.width * 0.2);
+            const lightSourceY = visibleSubY + submarine.height * 0.6;
+
+            const spotlightP1X = lightSourceX;
+            const spotlightP1Y = lightSourceY;
+            const spotlightP2X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
+            const spotlightP2Y = lightSourceY - lightWidthAtEnd / 2;
+            const spotlightP3X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
+            const spotlightP3Y = lightSourceY + lightWidthAtEnd / 2;
+            const creatures = getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
             if (creatures.length > 0) {
                 const foundCreature = creatures[0];
-                onShowCreatureModal(foundCreature);
-                onCreatureDiscovery(foundCreature.id, performance.now());
+                onShowCreatureModalRef.current(foundCreature);
+                onCreatureDiscoveryRef.current(foundCreature.id, performance.now());
             }
         }
 
@@ -242,7 +222,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
 
         // Bucle principal del juego.
         function gameLoop(currentTime) {
-            if (isPaused) {
+            if (isPausedRef.current) {
                 animationFrameId = requestAnimationFrame(gameLoop);
                 return;
             }
@@ -297,16 +277,24 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             ocean.update();
             cameraY = submarine.update(currentTime, canvas, cameraY);
 
-            const creaturesInLight = submarine.isSpotlightOn ? getCreaturesInLight() : [];
+            const lightLength = 200;
+            const lightWidthAtEnd = 80;
+            const visibleSubY = submarine.y - cameraY;
+            const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * 0.8 : submarine.width * 0.2);
+            const lightSourceY = visibleSubY + submarine.height * 0.6;
+
+            const spotlightP1X = lightSourceX;
+            const spotlightP1Y = lightSourceY;
+            const spotlightP2X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
+            const spotlightP2Y = lightSourceY - lightWidthAtEnd / 2;
+            const spotlightP3X = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
+            const spotlightP3Y = lightSourceY + lightWidthAtEnd / 2;
+            const creaturesInLight = getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
 
             // Actualiza y dibuja las criaturas.
-            if (creatureSchools.epipelagic) {
-                creatureSchools.epipelagic.update(currentTime, submarine);
-                creatureSchools.epipelagic.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
-            }
-            individualCreatures.forEach(creature => {
-                creature.update(currentTime);
-                creature.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
+            Object.values(creatureSchools).forEach(school => {
+                school.update(currentTime, submarine);
+                school.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
             });
 
             // Dibuja el océano.
@@ -315,7 +303,8 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             // Actualiza y dibuja las partículas.
             particlePool.forEachActive(p => {
                 p.update(MAX_WORLD_DEPTH, ocean.height, submarine, canvas);
-                p.draw(ctx, cameraY, interpolatedDarknessLevel, false);
+                const particleInLight = submarine.isSpotlightOn && isPointInTriangle(p.x, p.y - cameraY, spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
+                p.draw(ctx, cameraY, interpolatedDarknessLevel, particleInLight);
             });
 
             // Actualiza y dibuja las burbujas.
@@ -340,14 +329,16 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 const visibleY = submarine.y - cameraY;
                 const centerX = submarine.x + submarine.width / 2;
                 const centerY = visibleY + submarine.height / 2;
-                const ambientGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, AMBIENT_LIGHT_RADIUS);
-                ambientGradient.addColorStop(0, `rgba(255, 255, 200, ${interpolatedDarknessLevel * AMBIENT_LIGHT_MAX_OPACITY})`);
-                ambientGradient.addColorStop(0.7, `rgba(255, 255, 200, ${interpolatedDarknessLevel * AMBIENT_LIGHT_MAX_OPACITY * 0.7})`);
-                ambientGradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
-                ctx.fillStyle = ambientGradient;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, AMBIENT_LIGHT_RADIUS, 0, Math.PI * 2);
-                ctx.fill();
+                if (isFinite(centerX) && isFinite(centerY) && isFinite(AMBIENT_LIGHT_RADIUS)) {
+                    const ambientGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, AMBIENT_LIGHT_RADIUS);
+                    ambientGradient.addColorStop(0, `rgba(255, 255, 200, ${interpolatedDarknessLevel * AMBIENT_LIGHT_MAX_OPACITY})`);
+                    ambientGradient.addColorStop(0.7, `rgba(255, 255, 200, ${interpolatedDarknessLevel * AMBIENT_LIGHT_MAX_OPACITY * 0.7})`);
+                    ambientGradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
+                    ctx.fillStyle = ambientGradient;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, AMBIENT_LIGHT_RADIUS, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             }
 
             // Dibuja el foco del submarino.
@@ -368,7 +359,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 const p3x = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
                 const p3y = lightSourceY + lightWidthAtEnd / 2;
 
-                if (isFinite(p1x) && isFinite(p1y) && isFinite(lightLength)) {
+                if (isFinite(p1x) && isFinite(p1y) && isFinite(lightLength) && lightLength > 0) {
                     const spotlightGradient = ctx.createRadialGradient(
                         p1x, p1y, 0,
                         p1x, p1y, lightLength
@@ -388,17 +379,14 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             }
 
             // Dibuja las luces de las criaturas.
-            const allCreatures = [
-                ...(creatureSchools.epipelagic ? creatureSchools.epipelagic.members : []),
-                ...individualCreatures
-            ];
-            for (const creature of allCreatures) {
-                if (creature.hasLight) {
-                    const creatureCenterX = creature.x + creature.width / 2;
-                    const creatureCenterY = creature.y + creature.height / 2 - cameraY + creature.lightOffsetY;
-                    const lightRadius = creature.lightRadius;
-                    const lightColor = creature.lightColor;
+            const allCreaturesWithLights = Object.values(creatureSchools).flatMap(school => school.members.filter(member => member.hasLight));
+            for (const creature of allCreaturesWithLights) {
+                const creatureCenterX = creature.x + creature.width / 2;
+                const creatureCenterY = creature.y + creature.height / 2 - cameraY + creature.lightOffsetY;
+                const lightRadius = creature.lightRadius;
 
+                if (isFinite(creatureCenterX) && isFinite(creatureCenterY) && isFinite(lightRadius) && lightRadius > 0) {
+                    const lightColor = creature.lightColor;
                     const currentLightOpacity = creature.lightOpacity;
                     const finalLightColor = lightColor.replace(/[^,]+(?=\))/, currentLightOpacity.toFixed(2));
 
@@ -459,7 +447,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             }
 
             // Actualiza el radar.
-            updateRadarDisplay();
+            updateRadarDisplay(creaturesInLight);
 
             // Actualiza el brillo del borde del área de juego.
             updateGameAreaWrapperGlow(interpolatedDarknessLevel);
@@ -532,15 +520,19 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             initializeCreatures();
 
             particlePool.pool.forEach(p => p.active = false);
-            const numMotes = 4000;
-            const numDebris = 1000;
+            const numMotes = 4000 * PARTICLE_DENSITY_FACTOR;
+            const numDebris = 1000 * PARTICLE_DENSITY_FACTOR;
             for (let i = 0; i < numMotes; i++) {
                 const p = particlePool.get();
-                p.init(Math.random() * canvas.width, Math.random() * (MAX_WORLD_DEPTH - (ocean.height + 30)) + (ocean.height + 30), (Math.random() * 0.6 - 0.3) + (Math.sin(p.y * 0.01) * 0.1), (Math.random() * 0.3 - 0.15) - 0.05, Math.random() * 1.5 + 0.8, Math.random() * 0.4 + 0.3, 0, 'mote');
+                const y = Math.random() * (MAX_WORLD_DEPTH - (ocean.height + 30)) + (ocean.height + 30);
+                const alpha = 0.1 + (y / MAX_WORLD_DEPTH) * 0.4;
+                p.init(Math.random() * canvas.width, y, (Math.random() * 0.6 - 0.3) + (Math.sin(y * 0.01) * 0.1), (Math.random() * 0.3 - 0.15) - 0.05, Math.random() * 1.0 + 0.5, alpha, 0, 'mote');
             }
             for (let i = 0; i < numDebris; i++) {
                 const p = particlePool.get();
-                p.init(Math.random() * canvas.width, Math.random() * (MAX_WORLD_DEPTH - (ocean.height + 30)) + (ocean.height + 30), (Math.random() * 0.8 - 0.4) + (Math.cos(p.y * 0.005) * 0.2), (Math.random() * 0.5 - 0.25) - 0.1, Math.random() * 3 + 1.5, Math.random() * 0.3 + 0.1, 0, 'debris');
+                const y = Math.random() * (MAX_WORLD_DEPTH - (ocean.height + 30)) + (ocean.height + 30);
+                const alpha = 0.1 + (y / MAX_WORLD_DEPTH) * 0.3;
+                p.init(Math.random() * canvas.width, y, (Math.random() * 0.8 - 0.4) + (Math.cos(y * 0.005) * 0.2), (Math.random() * 0.5 - 0.25) - 0.1, Math.random() * 2 + 1, alpha, 0, 'debris');
             }
         }, 100);
 
@@ -626,10 +618,9 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
         }
 
         // Función para actualizar el radar.
-        function updateRadarDisplay() {
+        function updateRadarDisplay(creaturesInLight) {
             const isActive = submarine.isSpotlightOn;
-            const creaturesFound = getCreaturesInLight();
-            const hasDetection = creaturesFound.length > 0;
+            const hasDetection = creaturesInLight.length > 0;
 
             if (isActive && hasDetection && detectedDotPosition.x === null) {
                 const radarSize = radarCanvas.width;
@@ -660,7 +651,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             window.removeEventListener('resize', throttledResizeCanvas);
             cancelAnimationFrame(animationFrameId);
         };
-    }, [isGameInitialized, onCreatureDiscovery, onGamePause, onShowCreatureModal]);
+    }, [isGameInitialized]);
 
     // Renderiza el componente.
     return (
