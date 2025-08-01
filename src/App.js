@@ -52,12 +52,20 @@ function App() {
   const handleGamePause = useCallback(() => {
     setIsPaused(true);
     setCurrentScreen('pause');
+    const oceanAudio = document.getElementById('ocean-audio');
+    if (oceanAudio) {
+      oceanAudio.pause();
+    }
   }, []);
 
   // Manejador para reanudar el juego.
   const handleResumeGame = () => {
     setIsPaused(false);
     setCurrentScreen('game');
+    const oceanAudio = document.getElementById('ocean-audio');
+    if (oceanAudio) {
+      oceanAudio.play();
+    }
   };
 
   // Manejador para volver al menú principal.
@@ -74,6 +82,10 @@ function App() {
   // Manejador para cerrar el tutorial.
   const handleCloseTutorial = () => {
     setCurrentScreen('game');
+    const oceanAudio = document.getElementById('ocean-audio');
+    if (oceanAudio) {
+      oceanAudio.play();
+    }
   };
 
   // Renderiza el componente.
@@ -103,6 +115,10 @@ function App() {
 
       <audio id="backgroundMusic" loop>
         <source src="./assets/audio/JWG.mp3" type="audio/mpeg" />
+        Tu navegador no soporta el elemento de audio.
+      </audio>
+      <audio id="ocean-audio" loop>
+        <source src="https://www.zapsplat.com/wp-content/uploads/2015/sound-effect-packs/zapsplat_pack_ocean_waves_preview.mp3" type="audio/mpeg" />
         Tu navegador no soporta el elemento de audio.
       </audio>
     </div>
