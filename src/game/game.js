@@ -737,6 +737,7 @@ export class School {
             creature.maxForce = 0.05; // Fuerza máxima para una criatura individual.
             this.members.push(creature);
         }
+        this.leader = this.members[0];
     }
 
     /**
@@ -888,15 +889,19 @@ export class School {
             let currentMaxSpeed = this.normalMaxSpeed;
 
             if (this.isFleeing) {
-                currentCohesionWeight = 0; // Ignora la cohesión al huir.
-                currentAlignmentWeight = 0; // Ignora la alineación al huir.
-                currentSeparationWeight = this.separationWeight * 4; // Separación mucho más fuerte al huir.
-                currentMaxSpeed = this.fleeSpeed; // Más rápido al huir.
+                currentCohesionWeight = 0;
+                currentAlignmentWeight = 0;
+                currentSeparationWeight = this.separationWeight * 4;
+                currentMaxSpeed = this.fleeSpeed;
             } else if (this.reuniting) {
-                currentCohesionWeight = this.cohesionWeight * 3; // Aumenta la cohesión para reunirse.
-                currentAlignmentWeight = this.alignmentWeight * 2; // Aumenta la alineación.
-                currentSeparationWeight = this.separationWeight * 0.5; // Menos separación.
-                currentMaxSpeed = this.reuniteSpeed; // Reunificación más rápida.
+                if (member !== this.leader) {
+                    cohesion.x = this.leader.x - member.x;
+                    cohesion.y = this.leader.y - member.y;
+                }
+                currentCohesionWeight = this.cohesionWeight * 5;
+                currentAlignmentWeight = this.alignmentWeight * 2;
+                currentSeparationWeight = this.separationWeight * 0.5;
+                currentMaxSpeed = this.reuniteSpeed;
             }
 
             const wanderForce = {
