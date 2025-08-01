@@ -25,6 +25,19 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
     // Estado para controlar si el juego está inicializado.
     const [isGameInitialized, setIsGameInitialized] = useState(false);
 
+    // Crea referencias para las props para evitar que el useEffect se vuelva a ejecutar innecesariamente.
+    const onCreatureDiscoveryRef = useRef(onCreatureDiscovery);
+    onCreatureDiscoveryRef.current = onCreatureDiscovery;
+
+    const onGamePauseRef = useRef(onGamePause);
+    onGamePauseRef.current = onGamePause;
+
+    const onShowCreatureModalRef = useRef(onShowCreatureModal);
+    onShowCreatureModalRef.current = onShowCreatureModal;
+
+    const isPausedRef = useRef(isPaused);
+    isPausedRef.current = isPaused;
+
     // Efecto para precargar las imágenes del juego.
     useEffect(() => {
         const imageUrlsToPreload = creatureData.map(c => c.imageSrc);
@@ -105,11 +118,11 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
 
         // Manejador para el evento de presionar una tecla.
         const handleKeyDown = (e) => {
-            if (isPaused) {
+            if (isPausedRef.current) {
                 // Si el juego está en pausa, solo escucha 'Escape' para reanudar,
                 // pero deja que otros eventos de tecla (como Enter para el modal) se propaguen.
                 if (e.key === 'Escape') {
-                    onGamePause();
+                    onGamePauseRef.current();
                 }
                 return;
             }
@@ -132,7 +145,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             }
 
             if (key === 'escape') {
-                onGamePause();
+                onGamePauseRef.current();
             }
         };
 
@@ -197,8 +210,8 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             const creatures = getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
             if (creatures.length > 0) {
                 const foundCreature = creatures[0];
-                onShowCreatureModal(foundCreature);
-                onCreatureDiscovery(foundCreature.id, performance.now());
+                onShowCreatureModalRef.current(foundCreature);
+                onCreatureDiscoveryRef.current(foundCreature.id, performance.now());
             }
         }
 
@@ -209,7 +222,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
 
         // Bucle principal del juego.
         function gameLoop(currentTime) {
-            if (isPaused) {
+            if (isPausedRef.current) {
                 animationFrameId = requestAnimationFrame(gameLoop);
                 return;
             }
@@ -638,7 +651,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             window.removeEventListener('resize', throttledResizeCanvas);
             cancelAnimationFrame(animationFrameId);
         };
-    }, [isGameInitialized, onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused]);
+    }, [isGameInitialized]);
 
     // Renderiza el componente.
     return (
