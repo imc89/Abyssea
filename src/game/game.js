@@ -707,7 +707,7 @@ export class School {
         this.worldMaxY = worldMaxY;
 
         this.schoolingRadius = 150;
-        this.separationDistance = 20;
+        this.separationDistance = creatureTypeData.schoolingSeparation || 20;
         this.cohesionWeight = 0.05;
         this.alignmentWeight = 0.25;
         this.separationWeight = 0.1;

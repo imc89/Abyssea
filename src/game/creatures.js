@@ -13,6 +13,7 @@ export const creatureData = [
         flees: true,
         movementChangeFrequency: 4, // More erratic
         isSchooling: true,
+        schoolingSeparation: 1,
     },
     {
         id: 'pezFantasma',
@@ -45,5 +46,6 @@ export const creatureData = [
         flees: true,
         movementChangeFrequency: 5, // Darting movements
         isSchooling: true,
+        schoolingSeparation: 2,
     }
 ];
