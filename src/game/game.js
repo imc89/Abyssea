@@ -714,7 +714,7 @@ export class School {
         this.boundaryWeight = 0.5;
         this.fleeWeight = 2.0;
 
-        this.normalMaxSpeed = 0.1; // Calmer speed
+        this.normalMaxSpeed = 0.5; // Calmer speed
         this.fleeSpeed = 6.0; // Faster flee
         this.reuniteSpeed = 3.0; // Faster reunite
 
@@ -791,6 +791,23 @@ export class School {
             });
         }
         const schoolFacingDirection = totalVelocityX >= 0 ? 1 : -1;
+
+        let centerX = 0;
+        let centerY = 0;
+        let nonLeaderCount = 0;
+
+        this.members.forEach(member => {
+            if (member !== this.leader) {
+                centerX += member.x;
+                centerY += member.y;
+                nonLeaderCount++;
+            }
+        });
+
+        if (nonLeaderCount > 0) {
+            this.leader.x = centerX / nonLeaderCount;
+            this.leader.y = centerY / nonLeaderCount;
+        }
 
 
         this.members.forEach(member => {
