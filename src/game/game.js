@@ -725,6 +725,8 @@ export class School {
         this.reuniteDelay = 2500; // Longer delay to regroup
         this.canvas = canvas;
 
+        const centerX = Math.random() * canvas.width;
+        const centerY = Math.random() * (worldMaxY - worldMinY) + worldMinY;
         for (let i = 0; i < numMembers; i++) {
             const creature = new Creature(
                 creatureTypeData,
@@ -732,6 +734,8 @@ export class School {
                 worldMaxY,
                 canvas
             );
+            creature.x = centerX + (Math.random() - 0.5) * 50;
+            creature.y = centerY + (Math.random() - 0.5) * 50;
             creature.isSchooling = true;
             creature.maxSpeed = this.normalMaxSpeed; // Establece la velocidad máxima inicial.
             creature.maxForce = 0.05; // Fuerza máxima para una criatura individual.
