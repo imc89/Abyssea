@@ -8,7 +8,8 @@ import { lerp, showZoneMessage, isPointInTriangle, throttle, preloadImages } fro
 import {
     PIXELS_PER_METER, MAX_WORLD_DEPTH, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE,
     SPOTLIGHT_CHARGE_RATE, AMBIENT_LIGHT_RADIUS, AMBIENT_LIGHT_MAX_OPACITY, SUBMARINE_IMAGE_URL,
-    ZONE_COLORS, SUBMARINE_STATIC_IMAGE_URL, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED, PARTICLE_DENSITY_FACTOR
+    ZONE_COLORS, SUBMARINE_STATIC_IMAGE_URL, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED, PARTICLE_DENSITY_FACTOR,
+    SPOTLIGHT_HORIZONTAL_OFFSET, SPOTLIGHT_VERTICAL_OFFSET, SPOTLIGHT_LENGTH, SPOTLIGHT_WIDTH_AT_END
 } from '../../game/constants';
 import { creatureData } from '../../game/creatures';
 
@@ -185,11 +186,9 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 return;
             }
 
-            const lightLength = 200;
-            const lightWidthAtEnd = 80;
             const visibleSubY = submarine.y - cameraY;
-            const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * 0.8 : submarine.width * 0.2);
-            const lightSourceY = visibleSubY + submarine.height * 0.6;
+            const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * SPOTLIGHT_HORIZONTAL_OFFSET : submarine.width * (1 - SPOTLIGHT_HORIZONTAL_OFFSET));
+            const lightSourceY = visibleSubY + submarine.height * SPOTLIGHT_VERTICAL_OFFSET;
 
             const spotlightP1X = lightSourceX;
             const spotlightP1Y = lightSourceY;
@@ -267,11 +266,9 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             ocean.update();
             cameraY = submarine.update(currentTime, canvas, cameraY);
 
-            const lightLength = 200;
-            const lightWidthAtEnd = 80;
             const visibleSubY = submarine.y - cameraY;
-            const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * 0.8 : submarine.width * 0.2);
-            const lightSourceY = visibleSubY + submarine.height * 0.6;
+            const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * SPOTLIGHT_HORIZONTAL_OFFSET : submarine.width * (1 - SPOTLIGHT_HORIZONTAL_OFFSET));
+            const lightSourceY = visibleSubY + submarine.height * SPOTLIGHT_VERTICAL_OFFSET;
 
             const spotlightP1X = lightSourceX;
             const spotlightP1Y = lightSourceY;
@@ -334,25 +331,23 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             // Dibuja el foco del submarino.
             if (submarine.isSpotlightOn && submarine.batteryLevel > 0) {
                 const visibleY = submarine.y - cameraY;
-                const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * 0.8 : submarine.width * 0.2);
-                const lightSourceY = visibleY + submarine.height * 0.6;
-                const lightLength = 200;
-                const lightWidthAtEnd = 80;
+                const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * SPOTLIGHT_HORIZONTAL_OFFSET : submarine.width * (1 - SPOTLIGHT_HORIZONTAL_OFFSET));
+                const lightSourceY = visibleY + submarine.height * SPOTLIGHT_VERTICAL_OFFSET;
 
                 spotlightFlickerFactor = 1.0 + Math.sin(currentTime * SPOTLIGHT_FLICKER_SPEED) * SPOTLIGHT_FLICKER_AMOUNT;
                 spotlightFlickerFactor = Math.max(0.9, Math.min(1.1, spotlightFlickerFactor));
 
                 const p1x = lightSourceX;
                 const p1y = lightSourceY;
-                const p2x = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
-                const p2y = lightSourceY - lightWidthAtEnd / 2;
-                const p3x = lightSourceX + (submarine.facingDirection === 1 ? lightLength : -lightLength);
-                const p3y = lightSourceY + lightWidthAtEnd / 2;
+                const p2x = lightSourceX + (submarine.facingDirection === 1 ? SPOTLIGHT_LENGTH : -SPOTLIGHT_LENGTH);
+                const p2y = lightSourceY - SPOTLIGHT_WIDTH_AT_END / 2;
+                const p3x = lightSourceX + (submarine.facingDirection === 1 ? SPOTLIGHT_LENGTH : -SPOTLIGHT_LENGTH);
+                const p3y = lightSourceY + SPOTLIGHT_WIDTH_AT_END / 2;
 
-                if (isFinite(p1x) && isFinite(p1y) && isFinite(lightLength) && lightLength > 0) {
+                if (isFinite(p1x) && isFinite(p1y) && isFinite(SPOTLIGHT_LENGTH) && SPOTLIGHT_LENGTH > 0) {
                     const spotlightGradient = ctx.createRadialGradient(
                         p1x, p1y, 0,
-                        p1x, p1y, lightLength
+                        p1x, p1y, SPOTLIGHT_LENGTH
                     );
                     spotlightGradient.addColorStop(0, `rgba(200, 220, 255, ${0.5 * spotlightFlickerFactor})`);
                     spotlightGradient.addColorStop(0.7, `rgba(150, 180, 255, ${0.2 * spotlightFlickerFactor})`);
