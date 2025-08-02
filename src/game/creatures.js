@@ -47,5 +47,23 @@ export const creatureData = [
         movementChangeFrequency: 5, // Darting movements
         isSchooling: true,
         schoolingSeparation: 2,
+    },
+    {
+        id: 'ctenophore',
+        imageSrc: 'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZnlocXU0bGxhbWdjYm03YjJ5ZjJuMGZvazJqcXJ2Y241ZTd1ZXY3NiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Lq0iqt54V7Nw4Zrs0V/200.gif',
+        name: 'Ctenóforo Iridiscente',
+        description: 'El ctenóforo, o peine de mar, es una criatura gelatinosa que se distingue por sus "peines" de cilios que se mueven rítmicamente, creando deslumbrantes exhibiciones de iridiscencia. Muchas especies también son bioluminiscentes, capaces de producir su propia luz.',
+        funFact: 'A diferencia de las medusas, los ctenóforos no pican. ¡Sus tentáculos usan células pegajosas llamadas coloblastos para capturar presas, no aguijones!',
+        scale: 1.0,
+        hasLight: true,
+        lightColor: 'rgba(0, 255, 150, 0.7)',
+        lightRadius: 10,
+        lightOffsetY: 0,
+        minDepth: 300,
+        maxDepth: 500,
+        numInstances: 10,
+        flees: false,
+        movementChangeFrequency: 2,
+        isSchooling: false,
     }
 ];
