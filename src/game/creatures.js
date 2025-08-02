@@ -7,13 +7,13 @@ export const creatureData = [
         description: 'El pez linterna es conocido por su bioluminiscencia, que utiliza para atraer presas y compañeros en las profundidades oscuras del océano. Su órgano luminoso, el fotóforo, es una adaptación fascinante a la vida en la zona batipelágica.',
         funFact: 'Algunas especies de peces linterna tienen fotóforos en sus ojos que les permiten ver en la oscuridad, ¡como si tuvieran gafas de visión nocturna naturales!',
         scale: 1.0,
-        minDepth: 200,
-        maxDepth: 4000,
+        minDepth: 10,
+        maxDepth: 50,
         numInstances: 15,
         flees: true,
         movementChangeFrequency: 4, // More erratic
         isSchooling: true,
-        schoolingSeparation: 1,
+        schoolingSeparation: 3,
     },
     {
         id: 'pezFantasma',
@@ -26,12 +26,13 @@ export const creatureData = [
         lightColor: 'rgba(0, 200, 255, 0.9)',
         lightRadius: 8,
         lightOffsetY: -20,
-        minDepth: 200,
-        maxDepth: 4000,
-        numInstances: 8,
+        minDepth: 80,
+        maxDepth: 110,
+        numInstances: 3,
         flees: true,
         movementChangeFrequency: 1, // Slower, more graceful
         isSchooling: false,
+        schoolingSeparation: 3,
     },
     {
         id: 'calamarMesopelagico',
@@ -40,12 +41,12 @@ export const creatureData = [
         description: 'Los calamares mesopelágicos son depredadores ágiles que habitan en la zona crepuscular del océano. Muchos tienen fotóforos para camuflarse o atraer presas, y son una parte vital de la cadena alimentaria en estas profundidades.',
         funFact: 'Algunos calamares de las profundidades pueden expulsar una "tinta" bioluminiscente en lugar de tinta oscura, para confundir a los atacantes en la oscuridad.',
         scale: 0.85,
-        minDepth: 200,
+        minDepth: 120,
         maxDepth: 1000,
         numInstances: 5,
-        flees: true,
+        flees: false,
         movementChangeFrequency: 5, // Darting movements
-        isSchooling: true,
+        isSchooling: false,
         schoolingSeparation: 2,
     }
 ];
