@@ -512,6 +512,7 @@ export class Creature {
         this.name = creatureData.name;
         this.description = creatureData.description;
         this.funFact = creatureData.funFact;
+        this.flees = creatureData.flees || false;
         this.hasLight = creatureData.hasLight || false;
         this.lightColor = creatureData.lightColor || 'rgba(0, 200, 255, 0.9)';
         this.lightRadius = creatureData.lightRadius || 10;
@@ -601,12 +602,13 @@ export class Creature {
                     );
                     this.velocity.x = Math.cos(angle) * 3;
                     this.velocity.y = Math.sin(angle) * 3;
-                }
-            } else {
-                if (Math.random() < this.movementChangeFrequency / 100) {
+                } else if (Math.random() < this.movementChangeFrequency / 100) {
                     this.velocity.x = (Math.random() - 0.5) * this.maxSpeed * 2;
                     this.velocity.y = (Math.random() - 0.5) * this.maxSpeed * 2;
                 }
+            } else if (Math.random() < this.movementChangeFrequency / 100) {
+                this.velocity.x = (Math.random() - 0.5) * this.maxSpeed * 2;
+                this.velocity.y = (Math.random() - 0.5) * this.maxSpeed * 2;
             }
 
             this.x += this.velocity.x;
