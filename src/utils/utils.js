@@ -99,22 +99,22 @@ export function throttle(func, limit) {
  * @param {Array<string>} imageUrls - Un array de URLs de imágenes a precargar.
  * @returns {Promise<void>} Una promesa que se resuelve cuando todas las imágenes han sido cargadas.
  */
-export function preloadImages(imageUrls, preloadedImages) {
+export function preloadImages(imageUrls) {
+    const preloadedImages = {};
     const promises = imageUrls.map(url => {
         return new Promise((resolve, reject) => {
-            const img = new Image(); // Crea un nuevo objeto de imagen.
-            img.src = url; // Establece la URL de la imagen.
-            // Cuando la imagen se carga, la añade al objeto de imágenes precargadas y resuelve la promesa.
+            const img = new Image();
+            img.src = url;
             img.onload = () => {
                 preloadedImages[url] = img;
-                resolve();
+                resolve(img);
             };
-            // Si hay un error al cargar la imagen, muestra una advertencia y resuelve la promesa.
             img.onerror = () => {
                 console.warn(`Failed to load image: ${url}`);
-                resolve();
+                // Resolve even on error to not break the Promise.all
+                resolve(null);
             };
         });
     });
-    return Promise.all(promises); // Devuelve una promesa que se resuelve cuando todas las imágenes han sido cargadas.
+    return Promise.all(promises).then(() => preloadedImages);
 }

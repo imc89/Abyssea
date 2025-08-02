@@ -1,7 +1,7 @@
 // Importa las dependencias necesarias de React.
 import React, { useRef, useEffect, useState, memo } from 'react';
 // Importa las clases y funciones del juego.
-import { Ocean, Submarine, Particle, Bubble, ObjectPool, School } from '../../game/game';
+import { Ocean, Submarine, Particle, Bubble, ObjectPool, School, Creature } from '../../game/game';
 // Importa las funciones de utilidad.
 import { lerp, showZoneMessage, isPointInTriangle, throttle, preloadImages } from '../../utils/utils';
 // Importa las constantes del juego.
@@ -32,11 +32,14 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
     // Efecto para precargar las imágenes del juego.
     useEffect(() => {
         const imageUrlsToPreload = creatureData.map(c => c.imageSrc);
-        imageUrlsToPreload.push(SUBMARINE_IMAGE_URL);
-        preloadImages(imageUrlsToPreload, {}).then(() => {
+        imageUrlsToPreload.push(SUBMARINE_IMAGE_URL, SUBMARINE_STATIC_IMAGE_URL);
+        preloadImages(imageUrlsToPreload).then((loadedImages) => {
+            preloadedImagesRef.current = loadedImages;
             setIsGameInitialized(true);
         });
     }, []);
+
+    const preloadedImagesRef = useRef({});
 
     // Efecto para inicializar y manejar el bucle del juego.
     useEffect(() => {
@@ -66,7 +69,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             appId: null,
         };
 
-        const preloadedImages = {};
+        const preloadedImages = preloadedImagesRef.current;
 
         // Instancias de los objetos del juego.
         const ocean = new Ocean();
@@ -97,10 +100,15 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 const minDepthPixels = creatureInfo.minDepth * PIXELS_PER_METER;
                 const maxDepthPixels = creatureInfo.maxDepth * PIXELS_PER_METER;
 
-                // For simplicity, we'll create a school for each creature type for now.
-                // You could add a property to creatureData to distinguish between schooling and individual creatures.
-                const numCreatures = creatureInfo.numInstances; // Or get this from creatureData
-                creatureSchools[creatureInfo.id] = new School(creatureInfo, minDepthPixels, maxDepthPixels, numCreatures, canvas);
+                if (creatureInfo.isSchooling) {
+                    const numCreatures = creatureInfo.numInstances;
+                    creatureSchools[creatureInfo.id] = new School(creatureInfo, minDepthPixels, maxDepthPixels, numCreatures, canvas);
+                } else {
+                    for (let i = 0; i < creatureInfo.numInstances; i++) {
+                        const creature = new Creature(creatureInfo, minDepthPixels, maxDepthPixels, canvas);
+                        individualCreatures.push(creature);
+                    }
+                }
             });
         }
 
@@ -162,7 +170,10 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             const subCenterX = submarine.x + submarine.width / 2;
             const subCenterY = submarine.y + submarine.height / 2;
 
-            const allCreatures = Object.values(creatureSchools).flatMap(school => school.members);
+            const allCreatures = [
+                ...Object.values(creatureSchools).flatMap(school => school.members),
+                ...individualCreatures
+            ];
 
             for (const creature of allCreatures) {
                 const creatureCenterX = creature.x + creature.width / 2;
@@ -284,6 +295,11 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
                 school.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
             });
 
+            individualCreatures.forEach(creature => {
+                creature.update(currentTime, submarine);
+                creature.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
+            });
+
             // Dibuja el océano.
             ocean.draw(ctx, cameraY);
 
@@ -364,7 +380,10 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
             }
 
             // Dibuja las luces de las criaturas.
-            const allCreaturesWithLights = Object.values(creatureSchools).flatMap(school => school.members.filter(member => member.hasLight));
+            const allCreaturesWithLights = [
+                ...Object.values(creatureSchools).flatMap(school => school.members.filter(member => member.hasLight)),
+                ...individualCreatures.filter(creature => creature.hasLight)
+            ];
             for (const creature of allCreaturesWithLights) {
                 const creatureCenterX = creature.x + creature.width / 2;
                 const creatureCenterY = creature.y + creature.height / 2 - cameraY + creature.lightOffsetY;

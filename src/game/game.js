@@ -51,18 +51,19 @@ export class Submarine {
     constructor(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SUBMARINE_STATIC_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED) {
         this.ocean = ocean; // Instancia del océano.
         this.bubblePool = bubblePool; // Pool de burbujas.
-        this.image = preloadedImages[SUBMARINE_IMAGE_URL]; // Imagen del submarino.
+        this.animatedImage = preloadedImages[SUBMARINE_IMAGE_URL];
+        this.staticImage = preloadedImages[SUBMARINE_STATIC_IMAGE_URL];
         this.scaleFactor = SUBMARINE_SCALE_FACTOR; // Factor de escala del submarino.
 
         // Establece el tamaño del submarino.
-        if (!this.image) {
+        if (!this.animatedImage) {
             this.drawFallback = true;
             this.width = SUBMARINE_BASE_WIDTH * this.scaleFactor;
             this.height = SUBMARINE_BASE_HEIGHT * this.scaleFactor;
         } else {
             this.drawFallback = false;
-            this.width = this.image.naturalWidth * this.scaleFactor;
-            this.height = this.image.naturalHeight * this.scaleFactor;
+            this.width = this.animatedImage.naturalWidth * this.scaleFactor;
+            this.height = this.animatedImage.naturalHeight * this.scaleFactor;
         }
 
         // Propiedades del submarino.
@@ -83,9 +84,7 @@ export class Submarine {
         // Elementos del DOM.
         this.element = document.getElementById('submarineElement');
         this.imageElement = this.element.querySelector('img');
-        this.imageElement.src = SUBMARINE_IMAGE_URL;
-        this.animatedImageUrl = SUBMARINE_IMAGE_URL;
-        this.staticImageUrl = SUBMARINE_STATIC_IMAGE_URL;
+        this.imageElement.src = this.animatedImage ? this.animatedImage.src : '';
         this.element.style.width = `${this.width}px`;
         this.element.style.height = `${this.height}px`;
 
@@ -138,12 +137,12 @@ export class Submarine {
         const isMoving = this.horizontalDirection !== 0 || this.verticalDirection !== 0;
 
         if (isMoving) {
-            if (this.imageElement.src !== this.animatedImageUrl) {
-                this.imageElement.src = this.animatedImageUrl;
+            if (this.imageElement.src !== this.animatedImage.src) {
+                this.imageElement.src = this.animatedImage.src;
             }
         } else {
-            if (this.imageElement.src !== this.staticImageUrl) {
-                this.imageElement.src = this.staticImageUrl;
+            if (this.imageElement.src !== this.staticImage.src) {
+                this.imageElement.src = this.staticImage.src;
             }
         }
         const waveInfluenceFactor = 0.15;
@@ -513,6 +512,7 @@ export class Creature {
         this.name = creatureData.name;
         this.description = creatureData.description;
         this.funFact = creatureData.funFact;
+        this.flees = creatureData.flees || false;
         this.hasLight = creatureData.hasLight || false;
         this.lightColor = creatureData.lightColor || 'rgba(0, 200, 255, 0.9)';
         this.lightRadius = creatureData.lightRadius || 10;
@@ -586,10 +586,27 @@ export class Creature {
      * Actualiza la posición y el estado de la criatura.
      * @param {number} currentTime - Tiempo actual del juego.
      */
-    update(currentTime) {
+    update(currentTime, submarine) {
         // Solo aplica movimiento independiente si no está en un cardumen.
         if (!this.isSchooling) {
-            if (Math.random() < this.movementChangeFrequency / 100) {
+            if (this.flees && submarine) {
+                const distToSub = Math.sqrt(
+                    (this.x + this.width / 2 - (submarine.x + submarine.width / 2)) ** 2 +
+                    (this.y + this.height / 2 - (submarine.y + submarine.height / 2)) ** 2
+                );
+
+                if (distToSub < 150) {
+                    const angle = Math.atan2(
+                        this.y + this.height / 2 - (submarine.y + submarine.height / 2),
+                        this.x + this.width / 2 - (submarine.x + submarine.width / 2)
+                    );
+                    this.velocity.x = Math.cos(angle) * 3;
+                    this.velocity.y = Math.sin(angle) * 3;
+                } else if (Math.random() < this.movementChangeFrequency / 100) {
+                    this.velocity.x = (Math.random() - 0.5) * this.maxSpeed * 2;
+                    this.velocity.y = (Math.random() - 0.5) * this.maxSpeed * 2;
+                }
+            } else if (Math.random() < this.movementChangeFrequency / 100) {
                 this.velocity.x = (Math.random() - 0.5) * this.maxSpeed * 2;
                 this.velocity.y = (Math.random() - 0.5) * this.maxSpeed * 2;
             }
@@ -707,25 +724,27 @@ export class School {
         this.worldMinY = worldMinY;
         this.worldMaxY = worldMaxY;
 
-        this.schoolingRadius = 100; // Radio ligeramente reducido para grupos más apretados.
-        this.separationDistance = 25; // Ligeramente aumentado para evitar más superposiciones pero aún permitir la cercanía.
-        this.cohesionWeight = 0.008; // Aumentado para un tirón más fuerte hacia el centro.
-        this.alignmentWeight = 0.08; // Aumentado para una alineación más fuerte.
-        this.separationWeight = 0.03; // Aumentado para evitar más superposiciones.
-        this.boundaryWeight = 0.1;
-        this.fleeWeight = 1.0; // Aumentado para una respuesta de huida más fuerte.
+        this.schoolingRadius = 100;
+        this.separationDistance = 30 + (creatureTypeData.schoolingSeparation || 0) * 20;
+        this.cohesionWeight = 0.1;
+        this.alignmentWeight = 0.3;
+        this.separationWeight = 0.2;
+        this.boundaryWeight = 0.5;
+        this.fleeWeight = 2.0;
 
-        this.normalMaxSpeed = 0.4; // Ligeramente más lento para un movimiento más natural y lento.
-        this.fleeSpeed = 4.0; // Velocidad de huida más rápida.
-        this.reuniteSpeed = 2.0; // Velocidad de reunificación más rápida.
+        this.normalMaxSpeed = 0.5; // Calmer speed
+        this.fleeSpeed = 6.0; // Faster flee
+        this.reuniteSpeed = 3.0; // Faster reunite
 
         this.isFleeing = false;
-        this.reuniting = false; // Nuevo estado para la fase de reunificación.
+        this.reuniting = false;
         this.fleeingTimeout = null;
-        this.fleeRadius = 250; // Radio aumentado para activar la huida antes.
-        this.reuniteDelay = 1500; // Retraso más corto para comenzar a reunirse más rápido.
+        this.fleeRadius = 300; // Larger radius to get scared
+        this.reuniteDelay = 2500; // Longer delay to regroup
         this.canvas = canvas;
 
+        const centerX = Math.random() * canvas.width;
+        const centerY = Math.random() * (worldMaxY - worldMinY) + worldMinY;
         for (let i = 0; i < numMembers; i++) {
             const creature = new Creature(
                 creatureTypeData,
@@ -733,11 +752,14 @@ export class School {
                 worldMaxY,
                 canvas
             );
+            creature.x = centerX + (Math.random() - 0.5) * 100;
+            creature.y = centerY + (Math.random() - 0.5) * 100;
             creature.isSchooling = true;
             creature.maxSpeed = this.normalMaxSpeed; // Establece la velocidad máxima inicial.
             creature.maxForce = 0.05; // Fuerza máxima para una criatura individual.
             this.members.push(creature);
         }
+        this.leader = this.members[0];
     }
 
     /**
@@ -746,47 +768,37 @@ export class School {
      * @param {Submarine} submarine - Instancia del submarino para interacción.
      */
     update(currentTime, submarine) {
-        let anyMemberCloseToSubmarine = false;
-
-        // Comprueba la proximidad del submarino.
-        for (const member of this.members) {
-            const distToSub = Math.sqrt(
-                (member.x + member.width / 2 - (submarine.x + submarine.width / 2)) ** 2 +
-                (member.y + member.height / 2 - (submarine.y + submarine.height / 2)) ** 2
-            );
-            if (distToSub < this.fleeRadius) {
-                anyMemberCloseToSubmarine = true;
-                break;
-            }
-        }
+        const isCollidingWithLeader =
+            submarine.x < this.leader.x + this.leader.width &&
+            submarine.x + submarine.width > this.leader.x &&
+            submarine.y < this.leader.y + this.leader.height &&
+            submarine.y + submarine.height > this.leader.y;
 
         if (this.creatureTypeData.flees) {
-            if (anyMemberCloseToSubmarine) {
+            if (isCollidingWithLeader && !this.isFleeing) {
                 this.isFleeing = true;
-                this.reuniting = false; // Deja de reunirte si el submarino está cerca de nuevo.
+                this.reuniting = false;
                 if (this.fleeingTimeout) {
                     clearTimeout(this.fleeingTimeout);
                     this.fleeingTimeout = null;
                 }
-            } else if (this.isFleeing && !this.fleeingTimeout) {
-                // El submarino se alejó, inicia el temporizador de reunificación.
+
+                // Make the leader dash away
+                const angle = Math.atan2(
+                    this.leader.y + this.leader.height / 2 - (submarine.y + submarine.height / 2),
+                    this.leader.x + this.leader.width / 2 - (submarine.x + submarine.width / 2)
+                );
+                this.leader.velocity.x = Math.cos(angle) * this.fleeSpeed * 1.5;
+                this.leader.velocity.y = Math.sin(angle) * this.fleeSpeed * 1.5;
+
+            } else if (this.isFleeing && !isCollidingWithLeader && !this.fleeingTimeout) {
                 this.fleeingTimeout = setTimeout(() => {
                     this.isFleeing = false;
                     this.fleeingTimeout = null;
-                    this.reuniting = true; // Inicia la fase de reunificación.
-                    // Establece un tiempo de espera para finalizar la fase de reunificación.
-                    setTimeout(() => this.reuniting = false, 3000); // Reunirse durante 3 segundos.
+                    this.reuniting = true;
+                    setTimeout(() => this.reuniting = false, 3000);
                 }, this.reuniteDelay);
             }
-        } else if (this.isFleeing && !this.fleeingTimeout) {
-            // El submarino se alejó, inicia el temporizador de reunificación.
-            this.fleeingTimeout = setTimeout(() => {
-                this.isFleeing = false;
-                this.fleeingTimeout = null;
-                this.reuniting = true; // Inicia la fase de reunificación.
-                // Establece un tiempo de espera para finalizar la fase de reunificación.
-                setTimeout(() => this.reuniting = false, 3000); // Reunirse durante 3 segundos.
-            }, this.reuniteDelay);
         }
 
         // Calcula la velocidad promedio para la dirección de la cara del cardumen si no está huyendo.
@@ -797,6 +809,29 @@ export class School {
             });
         }
         const schoolFacingDirection = totalVelocityX >= 0 ? 1 : -1;
+
+        if (!this.isFleeing) {
+            // Leader's independent movement
+            this.leader.velocity.x += (Math.random() - 0.5) * 0.1;
+            this.leader.velocity.y += (Math.random() - 0.5) * 0.1;
+
+            const mag = Math.sqrt(this.leader.velocity.x ** 2 + this.leader.velocity.y ** 2);
+            if (mag > this.normalMaxSpeed) {
+                this.leader.velocity.x = (this.leader.velocity.x / mag) * this.normalMaxSpeed;
+                this.leader.velocity.y = (this.leader.velocity.y / mag) * this.normalMaxSpeed;
+            }
+
+            this.leader.x += this.leader.velocity.x;
+            this.leader.y += this.leader.velocity.y;
+
+            // Boundary check for the leader
+            if (this.leader.x < 0 || this.leader.x > this.canvas.width - this.leader.width) {
+                this.leader.velocity.x *= -1;
+            }
+            if (this.leader.y < this.worldMinY || this.leader.y > this.worldMaxY - this.leader.height) {
+                this.leader.velocity.y *= -1;
+            }
+        }
 
 
         this.members.forEach(member => {
@@ -900,22 +935,26 @@ export class School {
             let currentMaxSpeed = this.normalMaxSpeed;
 
             if (this.isFleeing) {
-                currentCohesionWeight = 0; // Ignora la cohesión al huir.
-                currentAlignmentWeight = 0; // Ignora la alineación al huir.
-                currentSeparationWeight = this.separationWeight * 4; // Separación mucho más fuerte al huir.
-                currentMaxSpeed = this.fleeSpeed; // Más rápido al huir.
+                currentCohesionWeight = 0;
+                currentAlignmentWeight = 0;
+                currentSeparationWeight = this.separationWeight * 4;
+                currentMaxSpeed = this.fleeSpeed;
             } else if (this.reuniting) {
-                currentCohesionWeight = this.cohesionWeight * 3; // Aumenta la cohesión para reunirse.
-                currentAlignmentWeight = this.alignmentWeight * 2; // Aumenta la alineación.
-                currentSeparationWeight = this.separationWeight * 0.5; // Menos separación.
-                currentMaxSpeed = this.reuniteSpeed; // Reunificación más rápida.
+                if (member !== this.leader) {
+                    cohesion.x = this.leader.x - member.x;
+                    cohesion.y = this.leader.y - member.y;
+                }
+                currentCohesionWeight = this.cohesionWeight * 5;
+                currentAlignmentWeight = this.alignmentWeight * 2;
+                currentSeparationWeight = this.separationWeight * 0.5;
+                currentMaxSpeed = this.reuniteSpeed;
             }
 
             const wanderForce = {
-                x: Math.cos(member.wanderAngle) * 0.1,
-                y: Math.sin(member.wanderAngle) * 0.1
+                x: Math.cos(member.wanderAngle) * 0.05,
+                y: Math.sin(member.wanderAngle) * 0.05
             };
-            member.wanderAngle += (Math.random() - 0.5) * 0.5;
+            member.wanderAngle += (Math.random() - 0.5) * 0.2;
 
             let forceX = separation.x * currentSeparationWeight +
                 alignment.x * currentAlignmentWeight +
