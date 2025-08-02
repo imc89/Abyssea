@@ -113,12 +113,9 @@ function App() {
       {currentScreen === 'creatureModal' && <CreatureModal creature={selectedCreature} onClose={handleCloseCreatureModal} />}
       {currentScreen === 'pause' && <PauseMenu onResume={handleResumeGame} onBackToMenu={handleBackToMenu} />}
 
-      <audio id="backgroundMusic" loop>
-        <source src="./assets/audio/JWG.mp3" type="audio/mpeg" />
-        Tu navegador no soporta el elemento de audio.
-      </audio>
+
       <audio id="ocean-audio" loop>
-        <source src="https://www.zapsplat.com/wp-content/uploads/2015/sound-effect-packs/zapsplat_pack_ocean_waves_preview.mp3" type="audio/mpeg" />
+        <source src={`${process.env.PUBLIC_URL}/sounds/music_1.mp3`}  />
         Tu navegador no soporta el elemento de audio.
       </audio>
     </div>

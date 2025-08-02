@@ -26,9 +26,9 @@ export const creatureData = [
         lightColor: 'rgba(0, 200, 255, 0.9)',
         lightRadius: 8,
         lightOffsetY: -20,
-        minDepth: 80,
-        maxDepth: 110,
-        numInstances: 3,
+        minDepth: 200,
+        maxDepth: 400,
+        numInstances: 5,
         flees: true,
         movementChangeFrequency: 1, // Slower, more graceful
         isSchooling: false,
