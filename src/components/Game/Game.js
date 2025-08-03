@@ -497,16 +497,14 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
 
         // Función para redimensionar el canvas.
         const throttledResizeCanvas = throttle(function () {
-            gameAreaWrapper.style.width = `${window.innerWidth * 0.8}px`;
-            gameAreaWrapper.style.height = `${window.innerHeight * 0.8}px`;
-            canvas.width = window.innerWidth * 0.8;
-            canvas.height = window.innerHeight * 0.8;
+            const margin = 50;
+            const newWidth = window.innerWidth - (margin * 2);
+            const newHeight = window.innerHeight - (margin * 2);
 
-            if (canvas.width > 1200) canvas.width = 1200;
-            if (canvas.height > 800) canvas.height = 800;
-
-            gameAreaWrapper.style.width = `${canvas.width}px`;
-            gameAreaWrapper.style.height = `${canvas.height}px`;
+            gameAreaWrapper.style.width = `${newWidth}px`;
+            gameAreaWrapper.style.height = `${newHeight}px`;
+            canvas.width = newWidth;
+            canvas.height = newHeight;
 
             radarCanvas.width = document.getElementById('radarDisplay').offsetWidth;
             radarCanvas.height = document.getElementById('radarDisplay').offsetHeight;

@@ -21,7 +21,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 20px;
-    padding: 20px;
+    /* padding: 20px; */
     position: relative;
     /* Necesario para posicionar contadores y mensajes */
     width: 100%;
@@ -33,13 +33,13 @@ body {
 .game-area-wrapper {
     position: relative;
     /* Para posicionar criaturas absolutamente dentro de este contenedor */
-    width: 80vw;
+    width: 100%;
     /* Coincide con el ancho del canvas */
-    height: 80vh;
+    height: 100%;
     /* Coincide con la altura del canvas */
-    max-width: 1200px;
+    /* max-width: 1200px; */
     /* Limita el tamaño máximo del juego */
-    max-height: 800px;
+    /* max-height: 800px; */
     display: flex;
     justify-content: center;
     align-items: center;
