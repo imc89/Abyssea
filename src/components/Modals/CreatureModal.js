@@ -26,6 +26,8 @@ const CreatureModal = ({ creature, onClose }) => {
     return (
         <div id="creatureModal" className="modal-overlay show">
             <div className="modal-content">
+                                <button id="closeModalBtn" className="close-button" onClick={onClose}>&times;</button>
+
                 <div className="modal-body">
                     <div className="modal-text-content">
                         <h2 id="modalCreatureName">{creature.name}</h2>
@@ -35,7 +37,6 @@ const CreatureModal = ({ creature, onClose }) => {
                     </div>
                     <div className="modal-image-container">
                         <img id="modalCreatureImage" src={creature.imageSrc} alt={`Imagen de ${creature.name}`} />
-                        <button id="closeModalBtn" className="close-button" onClick={onClose}>&times;</button>
                     </div>
                 </div>
             </div>
