@@ -538,6 +538,11 @@ export class Creature {
         this.scaleSpeed = 0.005;
         this.minScale = 0.95;
         this.maxScale = 1.05;
+
+        if (this.id === 'anoplogaster') {
+            this.minScale = 1.0;
+            this.maxScale = 1.0;
+        }
         this.isSchooling = false;
 
         this.movementChangeFrequency = creatureData.movementChangeFrequency;
