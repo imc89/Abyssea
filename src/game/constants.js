@@ -32,3 +32,9 @@ export const ZONE_COLORS = [
     { depth: 6000 * PIXELS_PER_METER, name: "Zona Hadopelágica (Fosas Oceánicas)", r: 0, g: 0, b: 0, darknessLevel: 1.0 }
 ];
 
+// Importa los iconos de volumen.
+import { TiVolumeMute, TiVolumeDown } from 'react-icons/ti';
+
+// Define y exporta los iconos para que puedan ser utilizados en otros componentes.
+export const MuteIcon = TiVolumeMute;
+export const UnmuteIcon = TiVolumeDown;

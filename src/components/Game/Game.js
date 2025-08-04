@@ -14,7 +14,7 @@ import {
 import { creatureData } from '../../game/creatures';
 
 // Componente principal del juego.
-const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused }) => {
+const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused, onMuteToggle }) => {
     // Referencias a los elementos del DOM.
     const canvasRef = useRef(null);
     const gameContainerRef = useRef(null);
@@ -145,6 +145,10 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused 
 
             if (key === 'escape') {
                 onGamePause();
+            }
+
+            if (key === 'm') {
+                onMuteToggle();
             }
         };
 
