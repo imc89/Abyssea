@@ -1,3 +1,6 @@
+// Importa los iconos de volumen.
+import { TiVolumeMute, TiVolumeDown } from 'react-icons/ti';
+
 // Constantes del juego.
 export const PIXELS_PER_METER = 10; // Píxeles por metro.
 export const MAX_WORLD_DEPTH = 11000 * PIXELS_PER_METER; // Profundidad máxima del mundo.
@@ -31,9 +34,6 @@ export const ZONE_COLORS = [
     { depth: 4000 * PIXELS_PER_METER, name: "Zona Abisopelágica (Abisal)", r: 0, g: 0, b: 10, darknessLevel: 0.99 },
     { depth: 6000 * PIXELS_PER_METER, name: "Zona Hadopelágica (Fosas Oceánicas)", r: 0, g: 0, b: 0, darknessLevel: 1.0 }
 ];
-
-// Importa los iconos de volumen.
-import { TiVolumeMute, TiVolumeDown } from 'react-icons/ti';
 
 // Define y exporta los iconos para que puedan ser utilizados en otros componentes.
 export const MuteIcon = TiVolumeMute;
