@@ -2,7 +2,7 @@ import React from 'react';
 import './MuteIndicator.css';
 
 const MuteIndicator = ({ Icon, isVisible }) => {
-    if (!isVisible) {
+    if (!isVisible || !Icon) {
         return null;
     }
 
