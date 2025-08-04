@@ -35,7 +35,7 @@ function App() {
       if (oceanAudio) {
         oceanAudio.muted = newMutedState;
       }
-      setMuteIcon(newMutedState ? MuteIcon : UnmuteIcon);
+      setMuteIcon(() => (newMutedState ? MuteIcon : UnmuteIcon));
       setIsMuteIndicatorVisible(true);
       setTimeout(() => {
         setIsMuteIndicatorVisible(false);
