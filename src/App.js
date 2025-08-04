@@ -9,6 +9,9 @@ import CreatureModal from './components/Modals/CreatureModal';
 import GalleryModal from './components/Modals/GalleryModal';
 import PauseMenu from './components/Modals/PauseMenu';
 import Tutorial from './components/Modals/Tutorial';
+import MuteIndicator from './components/Hud/MuteIndicator';
+import { MuteIcon, UnmuteIcon } from './game/constants';
+
 
 // Componente principal de la aplicación.
 function App() {
@@ -20,6 +23,26 @@ function App() {
   const [selectedCreature, setSelectedCreature] = useState(null);
   // Estado para controlar si el juego está en pausa.
   const [isPaused, setIsPaused] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [muteIcon, setMuteIcon] = useState(null);
+  const [isMuteIndicatorVisible, setIsMuteIndicatorVisible] = useState(false);
+
+
+  const handleMuteToggle = useCallback(() => {
+    setIsMuted(prevIsMuted => {
+      const newMutedState = !prevIsMuted;
+      const oceanAudio = document.getElementById('ocean-audio');
+      if (oceanAudio) {
+        oceanAudio.muted = newMutedState;
+      }
+      setMuteIcon(() => (newMutedState ? MuteIcon : UnmuteIcon));
+      setIsMuteIndicatorVisible(true);
+      setTimeout(() => {
+        setIsMuteIndicatorVisible(false);
+      }, 3000);
+      return newMutedState;
+    });
+  }, []);
 
   // Manejador para iniciar el juego.
   const handleStartGame = () => {
@@ -107,13 +130,14 @@ function App() {
           onGamePause={handleGamePause}
           onShowCreatureModal={handleShowCreatureModal}
           isPaused={currentScreen === 'pause' || currentScreen === 'creatureModal'}
+          onMuteToggle={handleMuteToggle}
         />
       )}
 
       {currentScreen === 'creatureModal' && <CreatureModal creature={selectedCreature} onClose={handleCloseCreatureModal} />}
       {currentScreen === 'pause' && <PauseMenu onResume={handleResumeGame} onBackToMenu={handleBackToMenu} />}
 
-
+      <MuteIndicator Icon={muteIcon} isVisible={isMuteIndicatorVisible} />
       <audio id="ocean-audio" loop>
         <source src={`${process.env.PUBLIC_URL}/sounds/music_1.mp3`}  />
         Tu navegador no soporta el elemento de audio.
