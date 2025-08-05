@@ -4,12 +4,7 @@ import './LoadingSpinner.css';
 const LoadingSpinner = () => {
     return (
         <div className="loading-spinner-container">
-            <div className="water-ripple">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>
+            <div className="neon-spinner"></div>
         </div>
     );
 };
