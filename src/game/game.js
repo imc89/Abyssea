@@ -338,28 +338,18 @@ export class Particle {
         if (!this.active) return;
 
         let adjustedAlpha = this.alpha;
-        let adjustedSize = this.initialSize;
+        const adjustedSize = this.initialSize;
 
-        // Ajusta según la profundidad (oscuridad)
-        const depthInfluence = globalDarknessFactor;
-        if (this.type === 'mote') {
-            adjustedAlpha = Math.min(1, this.alpha + (depthInfluence * 0.6));
-            adjustedSize = this.initialSize + (depthInfluence * 1.5);
-        } else if (this.type === 'debris') {
-            adjustedAlpha = Math.min(1, this.alpha + (depthInfluence * 0.3));
-            adjustedSize = this.initialSize + (depthInfluence * 0.5);
-        }
-
-        // Si está en el foco, mejora la visibilidad
         if (isInSpotlight) {
-            adjustedAlpha = Math.min(1, adjustedAlpha * 2.5 + 0.5);
-            adjustedSize = Math.min(adjustedSize * 1.5, 5);
+            adjustedAlpha = Math.min(1, this.alpha * 3.0 + 0.5);
         }
 
-        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, adjustedAlpha)})`;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y - cameraY, adjustedSize, 0, Math.PI * 2);
-        ctx.fill();
+        if (adjustedAlpha > 0) {
+            ctx.fillStyle = `rgba(255, 255, 255, ${adjustedAlpha})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y - cameraY, adjustedSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 }
 
