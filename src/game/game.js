@@ -121,7 +121,12 @@ export class Submarine {
         this.element.style.transform = transform;
         this.element.style.transformOrigin = 'center center';
 
-        if (isSpotlightOn) {
+        const depthInMeters = this.y / 10; // PIXELS_PER_METER is 10
+
+        if (depthInMeters > 450 && !isSpotlightOn) {
+            this.element.style.opacity = 0;
+        }
+        else if (isSpotlightOn) {
             this.element.style.opacity = 1;
         } else {
             this.element.style.opacity = Math.max(0.1, 1 - globalDarknessFactor);
