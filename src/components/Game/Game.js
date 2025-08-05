@@ -324,6 +324,10 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
 
+            // Calcula el factor de parpadeo del foco.
+            spotlightFlickerFactor = 1.0 + Math.sin(currentTime * SPOTLIGHT_FLICKER_SPEED) * SPOTLIGHT_FLICKER_AMOUNT;
+            spotlightFlickerFactor = Math.max(0.9, Math.min(1.1, spotlightFlickerFactor));
+
             // Dibuja la luz ambiental.
             if (submarine.isSpotlightOn && interpolatedDarknessLevel > 0.1) {
                 const visibleY = submarine.y - cameraY;
@@ -331,9 +335,10 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                 const centerY = visibleY + submarine.height / 2;
                 if (isFinite(centerX) && isFinite(centerY) && isFinite(AMBIENT_LIGHT_RADIUS)) {
                     const ambientGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, AMBIENT_LIGHT_RADIUS);
-                    ambientGradient.addColorStop(0, `rgba(255, 255, 200, ${interpolatedDarknessLevel * AMBIENT_LIGHT_MAX_OPACITY})`);
-                    ambientGradient.addColorStop(0.7, `rgba(255, 255, 200, ${interpolatedDarknessLevel * AMBIENT_LIGHT_MAX_OPACITY * 0.7})`);
-                    ambientGradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
+                    const baseOpacity = AMBIENT_LIGHT_MAX_OPACITY * spotlightFlickerFactor * interpolatedDarknessLevel;
+                    ambientGradient.addColorStop(0, `rgba(200, 220, 255, ${baseOpacity * 0.8})`);
+                    ambientGradient.addColorStop(0.7, `rgba(150, 180, 255, ${baseOpacity * 0.4})`);
+                    ambientGradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
                     ctx.fillStyle = ambientGradient;
                     ctx.beginPath();
                     ctx.arc(centerX, centerY, AMBIENT_LIGHT_RADIUS, 0, Math.PI * 2);
@@ -346,9 +351,6 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                 const visibleY = submarine.y - cameraY;
                 const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * SPOTLIGHT_HORIZONTAL_OFFSET : submarine.width * (1 - SPOTLIGHT_HORIZONTAL_OFFSET));
                 const lightSourceY = visibleY + submarine.height * SPOTLIGHT_VERTICAL_OFFSET;
-
-                spotlightFlickerFactor = 1.0 + Math.sin(currentTime * SPOTLIGHT_FLICKER_SPEED) * SPOTLIGHT_FLICKER_AMOUNT;
-                spotlightFlickerFactor = Math.max(0.9, Math.min(1.1, spotlightFlickerFactor));
 
                 const p1x = lightSourceX;
                 const p1y = lightSourceY;
