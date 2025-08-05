@@ -10,7 +10,7 @@ import GalleryModal from './components/Modals/GalleryModal';
 import PauseMenu from './components/Modals/PauseMenu';
 import Tutorial from './components/Modals/Tutorial';
 import MuteIndicator from './components/Hud/MuteIndicator';
-import { MuteIcon, UnmuteIcon } from './game/constants';
+import { MuteIcon, UnmuteIcon, MUSIC_VOLUME } from './game/constants';
 
 
 // Componente principal de la aplicación.
@@ -27,6 +27,12 @@ function App() {
   const [muteIcon, setMuteIcon] = useState(null);
   const [isMuteIndicatorVisible, setIsMuteIndicatorVisible] = useState(false);
 
+  useEffect(() => {
+    const oceanAudio = document.getElementById('ocean-audio');
+    if (oceanAudio) {
+      oceanAudio.volume = MUSIC_VOLUME;
+    }
+  }, []);
 
   const handleMuteToggle = useCallback(() => {
     setIsMuted(prevIsMuted => {
