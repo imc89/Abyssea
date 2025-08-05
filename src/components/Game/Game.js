@@ -480,6 +480,25 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             ctx.restore();
         }
 
+        function getAlphaForDepth(depth) {
+            const maxAlpha = 0.7; // Alpha at the surface
+            const minAlpha = 0.05; // Alpha at max depth
+            const fadeStartDepth = 200 * PIXELS_PER_METER;
+            const fadeEndDepth = 4000 * PIXELS_PER_METER;
+
+            if (depth < fadeStartDepth) {
+                return maxAlpha;
+            }
+            if (depth > fadeEndDepth) {
+                return minAlpha;
+            }
+
+            // Linear interpolation between fadeStartDepth and fadeEndDepth
+            const fadeDuration = fadeEndDepth - fadeStartDepth;
+            const progress = (depth - fadeStartDepth) / fadeDuration;
+            return maxAlpha - (maxAlpha - minAlpha) * progress;
+        }
+
         // Función para actualizar el brillo del borde del área de juego.
         function updateGameAreaWrapperGlow(darknessLevel) {
             const baseColor = [0, 255, 255];
@@ -544,8 +563,8 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                     const p = particlePool.get();
                     if (p) {
                         const y = Math.random() * zoneHeight + zoneStart;
-                        const alpha = 0.1 + (y / MAX_WORLD_DEPTH) * 0.4;
-                        p.init(Math.random() * canvas.width, y, (Math.random() * 0.6 - 0.3) + (Math.sin(y * 0.01) * 0.1), (Math.random() * 0.3 - 0.15) - 0.05, Math.random() * 1.0 + 0.5, alpha, 0, 'mote');
+                        const alpha = getAlphaForDepth(y);
+                        p.init(Math.random() * canvas.width, y, (Math.random() * 0.6 - 0.3) + (Math.sin(y * 0.01) * 0.1), (Math.random() * 0.3 - 0.15) - 0.05, Math.random() * 0.8 + 0.2, alpha, 0, 'mote');
                     }
                 }
 
@@ -553,8 +572,8 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                     const p = particlePool.get();
                     if (p) {
                         const y = Math.random() * zoneHeight + zoneStart;
-                        const alpha = 0.1 + (y / MAX_WORLD_DEPTH) * 0.3;
-                        p.init(Math.random() * canvas.width, y, (Math.random() * 0.8 - 0.4) + (Math.cos(y * 0.005) * 0.2), (Math.random() * 0.5 - 0.25) - 0.1, Math.random() * 2 + 1, alpha, 0, 'debris');
+                        const alpha = getAlphaForDepth(y);
+                        p.init(Math.random() * canvas.width, y, (Math.random() * 0.8 - 0.4) + (Math.cos(y * 0.005) * 0.2), (Math.random() * 0.5 - 0.25) - 0.1, Math.random() * 1.5 + 0.5, alpha, 0, 'debris');
                     }
                 }
             });

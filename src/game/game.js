@@ -337,16 +337,12 @@ export class Particle {
     draw(ctx, cameraY, globalDarknessFactor, isInSpotlight) {
         if (!this.active) return;
 
-        let adjustedAlpha;
-        let adjustedSize = this.initialSize;
+        let adjustedAlpha = this.alpha;
+        const adjustedSize = this.initialSize;
 
         // Si está en el foco, mejora la visibilidad
         if (isInSpotlight) {
-            adjustedAlpha = Math.min(1, this.alpha * 2.5 + 0.5);
-        } else {
-            // Si no está en el foco, la visibilidad disminuye con la profundidad.
-            const minVisibility = 0.1;
-            adjustedAlpha = Math.max(minVisibility, this.alpha * (1 - globalDarknessFactor));
+            adjustedAlpha = Math.min(1, this.alpha * 3.0 + 0.5);
         }
 
         ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, adjustedAlpha)})`;
