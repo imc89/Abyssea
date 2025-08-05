@@ -12,6 +12,7 @@ import {
     SPOTLIGHT_HORIZONTAL_OFFSET, SPOTLIGHT_VERTICAL_OFFSET, SPOTLIGHT_LENGTH, SPOTLIGHT_WIDTH_AT_END
 } from '../../game/constants';
 import { creatureData } from '../../game/creatures';
+import LoadingSpinner from './LoadingSpinner';
 
 // Componente principal del juego.
 const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused, onMuteToggle }) => {
@@ -701,18 +702,24 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
     // Renderiza el componente.
     return (
         <div className="game-container" ref={gameContainerRef}>
-            <div className="game-area-wrapper" ref={gameAreaWrapperRef}>
-                <canvas id="gameCanvas" ref={canvasRef}></canvas>
-                <div id="creaturesContainer" ref={creaturesContainerRef}></div>
-                <div id="submarineElement" ref={submarineElementRef}>
-                    <img src="" alt="Submarino" ref={submarineImageElementRef} />
-                </div>
-            </div>
-            <div id="depthCounter">Profundidad: 0 m</div>
-            <div id="radarDisplay">
-                <canvas id="radarCanvas" ref={radarCanvasRef}></canvas>
-            </div>
-            <div id="batteryDisplay">Batería: 100%</div>
+            {!isGameInitialized ? (
+                <LoadingSpinner />
+            ) : (
+                <>
+                    <div className="game-area-wrapper" ref={gameAreaWrapperRef}>
+                        <canvas id="gameCanvas" ref={canvasRef}></canvas>
+                        <div id="creaturesContainer" ref={creaturesContainerRef}></div>
+                        <div id="submarineElement" ref={submarineElementRef}>
+                            <img src="" alt="Submarino" ref={submarineImageElementRef} />
+                        </div>
+                    </div>
+                    <div id="depthCounter">Profundidad: 0 m</div>
+                    <div id="radarDisplay">
+                        <canvas id="radarCanvas" ref={radarCanvasRef}></canvas>
+                    </div>
+                    <div id="batteryDisplay">Batería: 100%</div>
+                </>
+            )}
         </div>
     );
 };
