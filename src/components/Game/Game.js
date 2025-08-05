@@ -169,7 +169,18 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             else { submarine.verticalDirection = 0; }
         }
 
-        // Función para obtener las criaturas que están en la luz del submarino.
+        /**
+         * Devuelve las criaturas que se encuentran dentro del foco del submarino.
+         * @param {number} spotlightP1X - Coordenada X del primer punto del triángulo del foco.
+         * @param {number} spotlightP1Y - Coordenada Y del primer punto del triángulo del foco.
+         * @param {number} spotlightP2X - Coordenada X del segundo punto del triángulo del foco.
+         * @param {number} spotlightP2Y - Coordenada Y del segundo punto del triángulo del foco.
+         * @param {number} spotlightP3X - Coordenada X del tercer punto del triángulo del foco.
+         * @param {number} spotlightP3Y - Coordenada Y del tercer punto del triángulo del foco.
+         * @returns {Array<Creature>} - Un array de las criaturas que están en la luz.
+         * @nota Para optimizar, se podría utilizar una estructura de datos de particionamiento espacial (como un quadtree)
+         * para no tener que iterar sobre todas las criaturas en cada fotograma.
+         */
         function getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y) {
             const creaturesInLight = [];
             const subCenterX = submarine.x + submarine.width / 2;
@@ -225,17 +236,23 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
         const SPOTLIGHT_FLICKER_SPEED = 0.05;
         const SPOTLIGHT_FLICKER_AMOUNT = 0.05;
 
-        // Bucle principal del juego.
+        /**
+         * El bucle principal del juego. Se ejecuta en cada fotograma.
+         * @param {number} currentTime - El tiempo actual proporcionado por `requestAnimationFrame`.
+         */
         function gameLoop(currentTime) {
+            // No hacer nada si el juego está en pausa.
             if (isPausedRef.current) {
                 animationFrameId = requestAnimationFrame(gameLoop);
                 return;
             }
+
+            // No hacer nada si la pantalla actual no es la del juego.
             if (gameState.currentScreen !== 'game') {
                 return;
             }
 
-            // Lógica de la zona actual.
+            // Determina la zona de profundidad actual y la siguiente.
             let currentZone = ZONE_COLORS[0];
             let nextZone = ZONE_COLORS[0];
             let zoneIndex = 0;
@@ -261,7 +278,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             }
             const interpolatedDarknessLevel = lerp(currentZone.darknessLevel, nextZone.darknessLevel, interpolationFactor);
 
-            // Dibuja el fondo del océano.
+            // Interpola los colores del océano y el nivel de oscuridad en función de la profundidad.
             const currentOceanR = lerp(currentZone.r, nextZone.r, interpolationFactor);
             const currentOceanG = lerp(currentZone.g, nextZone.g, interpolationFactor);
             const currentOceanB = lerp(currentZone.b, nextZone.b, interpolationFactor);

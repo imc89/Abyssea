@@ -46,6 +46,8 @@ export class Ocean {
 
 /**
  * Representa el submarino del jugador.
+ * @nota El submarino se renderiza como un elemento del DOM, lo que puede causar problemas de rendimiento.
+ * Una mejor aproximación sería dibujarlo directamente en el canvas.
  */
 export class Submarine {
     constructor(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SUBMARINE_STATIC_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED) {
@@ -122,9 +124,13 @@ export class Submarine {
         this.element.style.transformOrigin = 'center center';
 
         const depthInMeters = this.y / 10; // PIXELS_PER_METER is 10
+        const fadeStartDepth = 450;
+        const fadeEndDepth = 600;
 
-        if (depthInMeters > 450 && !isSpotlightOn) {
-            this.element.style.opacity = 0;
+        if (depthInMeters > fadeStartDepth && !isSpotlightOn) {
+            const fadeRange = fadeEndDepth - fadeStartDepth;
+            const fadeProgress = Math.min(1, (depthInMeters - fadeStartDepth) / fadeRange);
+            this.element.style.opacity = 1 - fadeProgress;
         }
         else if (isSpotlightOn) {
             this.element.style.opacity = 1;
@@ -138,11 +144,15 @@ export class Submarine {
      * @param {number} currentTime - Tiempo actual del juego.
      */
     update(currentTime, canvas, cameraY) {
+        // No actualizar si el juego está en pausa.
         if (this.isPaused) {
             return cameraY;
         }
+
+        // Comprueba si el submarino se está moviendo.
         const isMoving = this.horizontalDirection !== 0 || this.verticalDirection !== 0;
 
+        // Cambia la imagen del submarino en función de si se está moviendo o no.
         if (isMoving) {
             if (this.imageElement.src !== this.animatedImage.src) {
                 this.imageElement.src = this.animatedImage.src;
@@ -152,6 +162,8 @@ export class Submarine {
                 this.imageElement.src = this.staticImage.src;
             }
         }
+
+        // Mueve el submarino horizontalmente.
         const waveInfluenceFactor = 0.15;
 
         this.x += this.horizontalDirection * this.horizontalSpeed;
@@ -204,13 +216,15 @@ export class Submarine {
         else if (this.horizontalDirection === 1) { this.facingDirection = 1; }
         this.tiltAngle = 0;
 
-        // Lógica de generación de burbujas (solo cuando no está en la superficie).
+        // Genera burbujas si el submarino no está en la superficie.
         if (!this.isSurfaced) {
+            // Comprueba si ha pasado suficiente tiempo desde la última burbuja.
             if (currentTime - this.lastBubbleTime > this.bubbleInterval) {
                 let bubbleX, bubbleY, bubbleSpeedX;
                 const bubbleSpeedY = -Math.random() * 0.8 - 0.8;
                 const randomOffset = Math.random() * 10 - 5;
 
+                // Genera burbujas si el submarino se mueve verticalmente.
                 if (this.verticalDirection !== 0) {
                     bubbleX = this.x + this.width / 2 + (Math.random() - 0.5) * 15;
                     bubbleY = this.y + (this.verticalDirection === 1 ? this.height : 0);
@@ -218,6 +232,7 @@ export class Submarine {
                     this.lastBubbleTime = currentTime;
                 }
 
+                // Genera burbujas si el submarino se mueve horizontalmente.
                 if (this.horizontalDirection !== 0) {
                     const propellerRelativeX = this.facingDirection === 1 ? (20 * this.scaleFactor) : (this.width - (20 * this.scaleFactor));
                     const propellerCenterY = this.y + this.height * 0.7;
@@ -227,6 +242,7 @@ export class Submarine {
                     this.bubblePool.get().init(bubbleX, bubbleY, bubbleSpeedY, bubbleSpeedX, Math.random() * 4 + 3, 1.0, 0.01);
                     this.lastBubbleTime = currentTime;
                 } else if (this.verticalDirection === 0 && this.horizontalDirection === 0 && currentTime - this.lastBubbleTime > 500) {
+                    // Genera burbujas si el submarino está inactivo.
                     bubbleX = this.x + this.width / 2 + (Math.random() - 0.5) * 10;
                     bubbleY = this.y + this.height;
                     this.bubblePool.get().init(bubbleX, bubbleY, -0.5, (Math.random() - 0.5) * 0.2, Math.random() * 2 + 1, 0.7, 0.002);
@@ -518,6 +534,8 @@ export class ObjectPool {
 
 /**
  * Representa una criatura marina animada (utilizando elementos DOM).
+ * @nota Las criaturas se renderizan como elementos del DOM, lo que puede causar problemas de rendimiento.
+ * Una mejor aproximación sería dibujarlas directamente en el canvas.
  */
 export class Creature {
     constructor(creatureData, worldMinY, worldMaxY, canvas) {

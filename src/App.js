@@ -13,9 +13,12 @@ import MuteIndicator from './components/Hud/MuteIndicator';
 import { MuteIcon, UnmuteIcon, MUSIC_VOLUME } from './game/constants';
 
 
-// Componente principal de la aplicación.
+/**
+ * Componente principal de la aplicación.
+ * Gestiona el estado general del juego y el cambio entre las diferentes pantallas (menú, juego, etc.).
+ */
 function App() {
-  // Estado para controlar la pantalla actual.
+  // `currentScreen` almacena la pantalla actual que se debe renderizar.
   const [currentScreen, setCurrentScreen] = useState('mainMenu');
   // Estado para almacenar las criaturas descubiertas.
   const [discoveredCreatures, setDiscoveredCreatures] = useState({});
@@ -34,6 +37,9 @@ function App() {
     }
   }, []);
 
+  /**
+   * Activa o desactiva el sonido del juego.
+   */
   const handleMuteToggle = useCallback(() => {
     setIsMuted(prevIsMuted => {
       const newMutedState = !prevIsMuted;
