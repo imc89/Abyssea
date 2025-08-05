@@ -307,13 +307,6 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             // Dibuja el océano.
             ocean.draw(ctx, cameraY);
 
-            // Actualiza y dibuja las partículas.
-            particlePool.forEachActive(p => {
-                p.update(MAX_WORLD_DEPTH, ocean.height, submarine, canvas);
-                const particleInLight = submarine.isSpotlightOn && isPointInTriangle(p.x, p.y - cameraY, spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
-                p.draw(ctx, cameraY, interpolatedDarknessLevel, particleInLight);
-            });
-
             // Actualiza y dibuja las burbujas.
             bubblePool.forEachActive(bubble => {
                 bubble.update();
@@ -410,6 +403,13 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             }
 
             ctx.restore();
+
+            // Actualiza y dibuja las partículas.
+            particlePool.forEachActive(p => {
+                p.update(MAX_WORLD_DEPTH, ocean.height, submarine, canvas);
+                const particleInLight = submarine.isSpotlightOn && isPointInTriangle(p.x, p.y - cameraY, spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
+                p.draw(ctx, cameraY, interpolatedDarknessLevel, particleInLight);
+            });
 
             // Dibuja el submarino.
             submarine.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn);
