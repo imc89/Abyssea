@@ -337,18 +337,30 @@ export class Particle {
     draw(ctx, cameraY, globalDarknessFactor, isInSpotlight) {
         if (!this.active) return;
 
+        const darkZoneDepth = 300 * 10; // 300 meters * PIXELS_PER_METER
         let adjustedAlpha = this.alpha;
         const adjustedSize = this.initialSize;
 
-        // Si está en el foco, mejora la visibilidad
-        if (isInSpotlight) {
-            adjustedAlpha = Math.min(1, this.alpha * 3.0 + 0.5);
+        if (this.y > darkZoneDepth) {
+            // In deep zones, only visible in spotlight
+            if (isInSpotlight) {
+                adjustedAlpha = Math.min(1, this.alpha * 3.0 + 0.5);
+            } else {
+                adjustedAlpha = 0; // Completely invisible
+            }
+        } else {
+            // In shallow zones, always visible, and brighter in spotlight
+            if (isInSpotlight) {
+                adjustedAlpha = Math.min(1, this.alpha * 3.0 + 0.5);
+            }
         }
 
-        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, adjustedAlpha)})`;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y - cameraY, adjustedSize, 0, Math.PI * 2);
-        ctx.fill();
+        if (adjustedAlpha > 0) {
+            ctx.fillStyle = `rgba(255, 255, 255, ${adjustedAlpha})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y - cameraY, adjustedSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 }
 
