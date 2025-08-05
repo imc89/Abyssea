@@ -51,7 +51,7 @@ export const creatureData = [
     },
     {
         id: 'anoplogaster',
-        imageSrc: `${process.env.PUBLIC_URL}/img/creatures/animate/ANOPLOGASTER/anoplogaster.gif`,
+        imageSrc: `${process.env.PUBLIC_URL}/img/creatures/ANOPLOGASTER/anoplogaster.gif`,
         name: 'anoplogaster Mesopelágico',
         description: 'Los anoplogaster mesopelágicos son depredadores ágiles que habitan en la zona crepuscular del océano. Muchos tienen fotóforos para camuflarse o atraer presas, y son una parte vital de la cadena alimentaria en estas profundidades.',
         funFact: 'Algunos anoplogaster de las profundidades pueden expulsar una "tinta" bioluminiscente en lugar de tinta oscura, para confundir a los atacantes en la oscuridad.',

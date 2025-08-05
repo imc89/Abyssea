@@ -14,7 +14,7 @@ export const SPOTLIGHT_HORIZONTAL_OFFSET = 0.8; // Horizontal position of the li
 export const SPOTLIGHT_VERTICAL_OFFSET = 0.6; // Vertical position of the light source on the submarine. 0.6 means 60% from the top edge.
 export const SPOTLIGHT_LENGTH = 350; // The length of the spotlight beam in pixels.
 export const SPOTLIGHT_WIDTH_AT_END = 150; // The width of the spotlight beam at its end in pixels.
-export const AMBIENT_LIGHT_RADIUS = 80; // Radio de la luz ambiental.
+export const AMBIENT_LIGHT_RADIUS = 120; // Radio de la luz ambiental.
 export const AMBIENT_LIGHT_MAX_OPACITY = 0.5; // Opacidad máxima de la luz ambiental.
 export const SUBMARINE_IMAGE_URL = `${process.env.PUBLIC_URL}/img/submarine/submarine.gif`; // URL de la imagen del submarino.
 export const SUBMARINE_STATIC_IMAGE_URL = `${process.env.PUBLIC_URL}/img/submarine/submarine-static.png`;
@@ -27,7 +27,7 @@ export const SUBMARINE_VERTICAL_SPEED = 3;
 // Define la densidad de partículas para diferentes zonas de profundidad.
 export const PARTICLE_DENSITY_ZONES = [
     { depth: 0, densityFactor: 2.5 },
-    { depth: 200 * PIXELS_PER_METER, densityFactor: 2.5 },
+    { depth: 300 * PIXELS_PER_METER, densityFactor: 4.5 },
     { depth: 1000 * PIXELS_PER_METER, densityFactor: 2.5 },
     { depth: 4000 * PIXELS_PER_METER, densityFactor: 2.5 }
 ];
