@@ -717,4 +717,3 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
 
 // Exporta el componente para su uso en otras partes de la aplicación.
 export default memo(Game);
->>>>>>> REPLACE
