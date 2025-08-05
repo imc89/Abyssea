@@ -337,17 +337,21 @@ export class Particle {
     draw(ctx, cameraY, globalDarknessFactor, isInSpotlight) {
         if (!this.active) return;
 
-        let adjustedAlpha;
+        let adjustedAlpha = 0.7; // Use a high, constant base alpha for visibility
         let adjustedSize = this.initialSize;
 
-        // Si está en el foco, mejora la visibilidad
+        // Ajusta el tamaño según la profundidad (oscuridad)
+        const depthInfluence = globalDarknessFactor;
+        if (this.type === 'mote') {
+            adjustedSize = this.initialSize + (depthInfluence * 1.5);
+        } else if (this.type === 'debris') {
+            adjustedSize = this.initialSize + (depthInfluence * 0.5);
+        }
+
+        // Si está en el foco, mejora la visibilidad aún más
         if (isInSpotlight) {
-            adjustedAlpha = Math.min(1, this.alpha * 2.5 + 0.5);
-            adjustedSize = Math.min(this.initialSize * 1.5, 5);
-        } else {
-            // Si no está en el foco, la visibilidad disminuye con la profundidad.
-            const minVisibility = 0.05; // Mínima visibilidad para que no desaparezca.
-            adjustedAlpha = Math.max(minVisibility, this.alpha * (1 - globalDarknessFactor));
+            adjustedAlpha = Math.min(1, adjustedAlpha * 2.0 + 0.3); // Boost alpha further in spotlight
+            adjustedSize = Math.min(adjustedSize * 1.5, 5);
         }
 
         ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, adjustedAlpha)})`;
