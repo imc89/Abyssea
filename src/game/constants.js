@@ -23,7 +23,14 @@ export const SUBMARINE_BASE_HEIGHT = 60;
 export const SUBMARINE_SCALE_FACTOR = 0.85;
 export const SUBMARINE_HORIZONTAL_SPEED = 5;
 export const SUBMARINE_VERTICAL_SPEED = 3;
-export const PARTICLE_DENSITY_FACTOR = 1.0;
+
+// Define la densidad de partículas para diferentes zonas de profundidad.
+export const PARTICLE_DENSITY_ZONES = [
+    { depth: 0, densityFactor: 1.0 }, // Zona Epipelágica (0-200m): Densidad alta
+    { depth: 200 * PIXELS_PER_METER, densityFactor: 0.7 }, // Zona Mesopelágica (200-1000m): Densidad media
+    { depth: 1000 * PIXELS_PER_METER, densityFactor: 0.3 }, // Zona Batipelágica (1000-4000m): Densidad baja
+    { depth: 4000 * PIXELS_PER_METER, densityFactor: 0.1 }  // Zona Abisopelágica (4000m+): Densidad muy baja
+];
 
 // Define colores y niveles de oscuridad para diferentes zonas de profundidad.
 export const ZONE_COLORS = [
