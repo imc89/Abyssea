@@ -78,6 +78,8 @@ export class Submarine {
 
         this.batteryLevel = SPOTLIGHT_MAX_BATTERY;
         this.isSpotlightOn = false;
+        this.spotlightOpacity = 0;
+        this.targetSpotlightOpacity = 0;
         this.isSurfaced = false;
         this.isPaused = false;
 
@@ -231,11 +233,28 @@ export class Submarine {
         // Actualiza el nivel de la batería.
         if (this.isSpotlightOn && this.batteryLevel > 0) {
             this.batteryLevel = Math.max(0, this.batteryLevel - this.SPOTLIGHT_DRAIN_RATE);
-            if (this.batteryLevel === 0) { this.isSpotlightOn = false; }
+            if (this.batteryLevel === 0) {
+                this.isSpotlightOn = false;
+                this.targetSpotlightOpacity = 0;
+            }
         } else if (!this.isSpotlightOn && this.batteryLevel < this.SPOTLIGHT_MAX_BATTERY) {
             this.batteryLevel = Math.min(this.SPOTLIGHT_MAX_BATTERY, this.batteryLevel + this.SPOTLIGHT_CHARGE_RATE);
         }
+
+        // Transición suave de la opacidad del foco
+        this.spotlightOpacity = this.lerp(this.spotlightOpacity, this.targetSpotlightOpacity, 0.1);
+        if (this.spotlightOpacity < 0.01) this.spotlightOpacity = 0;
+        if (this.spotlightOpacity > 0.99) this.spotlightOpacity = 1;
+
+
         return cameraY;
+    }
+
+    toggleSpotlight() {
+        if (this.batteryLevel > 0) {
+            this.isSpotlightOn = !this.isSpotlightOn;
+            this.targetSpotlightOpacity = this.isSpotlightOn ? 1 : 0;
+        }
     }
 
     // Función de interpolación lineal.

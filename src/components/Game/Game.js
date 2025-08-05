@@ -137,7 +137,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             keys[key] = true;
 
             if ((key === ' ' || key === 'spacebar') && !e.repeat) {
-                submarine.isSpotlightOn = !submarine.isSpotlightOn;
+                submarine.toggleSpotlight();
             }
 
             if (key === 'enter' && !e.repeat) {
@@ -184,7 +184,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                 const creatureCenterX = creature.x + creature.width / 2;
                 const creatureCenterY = creature.y + creature.height / 2;
 
-                const isInSpotlight = submarine.isSpotlightOn && isPointInTriangle(creatureCenterX, creatureCenterY - cameraY, spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
+                const isInSpotlight = submarine.spotlightOpacity > 0 && isPointInTriangle(creatureCenterX, creatureCenterY - cameraY, spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
 
                 const distToSubCenterSq = (creatureCenterX - subCenterX) ** 2 + (creatureCenterY - subCenterY) ** 2;
                 const isInAmbientLight = distToSubCenterSq <= (AMBIENT_LIGHT_RADIUS * 1.2) ** 2;
@@ -198,7 +198,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
 
         // Función para manejar la pulsación de la tecla Enter.
         function handleEnterPress() {
-            if (!submarine.isSpotlightOn) {
+            if (submarine.spotlightOpacity <= 0) {
                 return;
             }
 
@@ -330,13 +330,13 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             spotlightFlickerFactor = Math.max(0.9, Math.min(1.1, spotlightFlickerFactor));
 
             // Dibuja la luz ambiental.
-            if (submarine.isSpotlightOn && interpolatedDarknessLevel > 0.1) {
+            if (submarine.spotlightOpacity > 0 && interpolatedDarknessLevel > 0.1) {
                 const visibleY = submarine.y - cameraY;
                 const centerX = submarine.x + submarine.width / 2;
                 const centerY = visibleY + submarine.height / 2;
                 if (isFinite(centerX) && isFinite(centerY) && isFinite(AMBIENT_LIGHT_RADIUS)) {
                     const ambientGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, AMBIENT_LIGHT_RADIUS);
-                    const baseOpacity = AMBIENT_LIGHT_MAX_OPACITY * spotlightFlickerFactor * interpolatedDarknessLevel;
+                    const baseOpacity = AMBIENT_LIGHT_MAX_OPACITY * spotlightFlickerFactor * interpolatedDarknessLevel * submarine.spotlightOpacity;
                     ambientGradient.addColorStop(0, `rgba(200, 220, 255, ${baseOpacity * 0.8})`);
                     ambientGradient.addColorStop(0.7, `rgba(150, 180, 255, ${baseOpacity * 0.4})`);
                     ambientGradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
@@ -348,7 +348,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             }
 
             // Dibuja el foco del submarino.
-            if (submarine.isSpotlightOn && submarine.batteryLevel > 0) {
+            if (submarine.spotlightOpacity > 0 && submarine.batteryLevel > 0) {
                 const visibleY = submarine.y - cameraY;
                 const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * SPOTLIGHT_HORIZONTAL_OFFSET : submarine.width * (1 - SPOTLIGHT_HORIZONTAL_OFFSET));
                 const lightSourceY = visibleY + submarine.height * SPOTLIGHT_VERTICAL_OFFSET;
@@ -365,8 +365,8 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                         p1x, p1y, 0,
                         p1x, p1y, SPOTLIGHT_LENGTH
                     );
-                    spotlightGradient.addColorStop(0, `rgba(200, 220, 255, ${0.5 * spotlightFlickerFactor})`);
-                    spotlightGradient.addColorStop(0.7, `rgba(150, 180, 255, ${0.2 * spotlightFlickerFactor})`);
+                    spotlightGradient.addColorStop(0, `rgba(200, 220, 255, ${0.5 * spotlightFlickerFactor * submarine.spotlightOpacity})`);
+                    spotlightGradient.addColorStop(0.7, `rgba(150, 180, 255, ${0.2 * spotlightFlickerFactor * submarine.spotlightOpacity})`);
                     spotlightGradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
 
                     ctx.fillStyle = spotlightGradient;
@@ -665,7 +665,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
 
         // Función para actualizar el radar.
         function updateRadarDisplay(creaturesInLight) {
-            const isActive = submarine.isSpotlightOn;
+            const isActive = submarine.spotlightOpacity > 0;
             const hasDetection = creaturesInLight.length > 0;
 
             if (isActive && hasDetection && detectedDotPosition.x === null) {
