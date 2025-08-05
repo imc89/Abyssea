@@ -482,14 +482,14 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
 
         function getAlphaForDepth(depth) {
             const maxAlpha = 0.7; // Alpha at the surface
-            const minAlpha = 0.05; // Alpha at max depth
-            const fadeStartDepth = 200 * PIXELS_PER_METER;
-            const fadeEndDepth = 4000 * PIXELS_PER_METER;
+            const minAlpha = 0.0; // Alpha at the cutoff depth
+            const fadeStartDepth = 100 * PIXELS_PER_METER;
+            const fadeEndDepth = 300 * PIXELS_PER_METER;
 
             if (depth < fadeStartDepth) {
                 return maxAlpha;
             }
-            if (depth > fadeEndDepth) {
+            if (depth >= fadeEndDepth) {
                 return minAlpha;
             }
 
@@ -717,3 +717,4 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
 
 // Exporta el componente para su uso en otras partes de la aplicación.
 export default memo(Game);
+>>>>>>> REPLACE
