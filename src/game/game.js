@@ -343,10 +343,9 @@ export class Particle {
         // Si está en el foco, mejora la visibilidad
         if (isInSpotlight) {
             adjustedAlpha = Math.min(1, this.alpha * 2.5 + 0.5);
-            adjustedSize = Math.min(this.initialSize * 1.5, 5);
         } else {
             // Si no está en el foco, la visibilidad disminuye con la profundidad.
-            const minVisibility = 0.1; // Un poco más visible que antes.
+            const minVisibility = 0.1;
             adjustedAlpha = Math.max(minVisibility, this.alpha * (1 - globalDarknessFactor));
         }
 
