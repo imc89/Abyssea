@@ -127,15 +127,17 @@ export class Submarine {
         const fadeStartDepth = 450;
         const fadeEndDepth = 600;
 
+        const opacityAtFadeStart = Math.max(0.1, 1 - globalDarknessFactor);
+
         if (depthInMeters > fadeStartDepth && !isSpotlightOn) {
             const fadeRange = fadeEndDepth - fadeStartDepth;
             const fadeProgress = Math.min(1, (depthInMeters - fadeStartDepth) / fadeRange);
-            this.element.style.opacity = 1 - fadeProgress;
+            this.element.style.opacity = opacityAtFadeStart * (1 - fadeProgress);
         }
         else if (isSpotlightOn) {
             this.element.style.opacity = 1;
         } else {
-            this.element.style.opacity = Math.max(0.1, 1 - globalDarknessFactor);
+            this.element.style.opacity = opacityAtFadeStart;
         }
     }
 
