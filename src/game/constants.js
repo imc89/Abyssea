@@ -23,6 +23,9 @@ export const SUBMARINE_BASE_HEIGHT = 60;
 export const SUBMARINE_SCALE_FACTOR = 0.85;
 export const SUBMARINE_HORIZONTAL_SPEED = 5;
 export const SUBMARINE_VERTICAL_SPEED = 3;
+export const SUBMARINE_FADE_START_DEPTH = 450;
+export const SUBMARINE_FADE_END_DEPTH = 600;
+export const SUBMARINE_MIN_OPACITY = 0.1;
 
 // Define la densidad de partículas para diferentes zonas de profundidad.
 export const PARTICLE_DENSITY_ZONES = [
