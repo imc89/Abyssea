@@ -12,6 +12,7 @@ import {
     SPOTLIGHT_HORIZONTAL_OFFSET, SPOTLIGHT_VERTICAL_OFFSET, SPOTLIGHT_LENGTH, SPOTLIGHT_WIDTH_AT_END
 } from '../../game/constants';
 import { creatureData } from '../../game/creatures';
+import LoadingSpinner from './LoadingSpinner';
 
 // Componente principal del juego.
 const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused, onMuteToggle }) => {
@@ -136,7 +137,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             keys[key] = true;
 
             if ((key === ' ' || key === 'spacebar') && !e.repeat) {
-                submarine.isSpotlightOn = !submarine.isSpotlightOn;
+                submarine.toggleSpotlight();
             }
 
             if (key === 'enter' && !e.repeat) {
@@ -168,7 +169,18 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             else { submarine.verticalDirection = 0; }
         }
 
-        // Función para obtener las criaturas que están en la luz del submarino.
+        /**
+         * Devuelve las criaturas que se encuentran dentro del foco del submarino.
+         * @param {number} spotlightP1X - Coordenada X del primer punto del triángulo del foco.
+         * @param {number} spotlightP1Y - Coordenada Y del primer punto del triángulo del foco.
+         * @param {number} spotlightP2X - Coordenada X del segundo punto del triángulo del foco.
+         * @param {number} spotlightP2Y - Coordenada Y del segundo punto del triángulo del foco.
+         * @param {number} spotlightP3X - Coordenada X del tercer punto del triángulo del foco.
+         * @param {number} spotlightP3Y - Coordenada Y del tercer punto del triángulo del foco.
+         * @returns {Array<Creature>} - Un array de las criaturas que están en la luz.
+         * @nota Para optimizar, se podría utilizar una estructura de datos de particionamiento espacial (como un quadtree)
+         * para no tener que iterar sobre todas las criaturas en cada fotograma.
+         */
         function getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y) {
             const creaturesInLight = [];
             const subCenterX = submarine.x + submarine.width / 2;
@@ -183,7 +195,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                 const creatureCenterX = creature.x + creature.width / 2;
                 const creatureCenterY = creature.y + creature.height / 2;
 
-                const isInSpotlight = submarine.isSpotlightOn && isPointInTriangle(creatureCenterX, creatureCenterY - cameraY, spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
+                const isInSpotlight = submarine.spotlightOpacity > 0 && isPointInTriangle(creatureCenterX, creatureCenterY - cameraY, spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
 
                 const distToSubCenterSq = (creatureCenterX - subCenterX) ** 2 + (creatureCenterY - subCenterY) ** 2;
                 const isInAmbientLight = distToSubCenterSq <= (AMBIENT_LIGHT_RADIUS * 1.2) ** 2;
@@ -197,7 +209,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
 
         // Función para manejar la pulsación de la tecla Enter.
         function handleEnterPress() {
-            if (!submarine.isSpotlightOn) {
+            if (submarine.spotlightOpacity <= 0) {
                 return;
             }
 
@@ -224,17 +236,23 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
         const SPOTLIGHT_FLICKER_SPEED = 0.05;
         const SPOTLIGHT_FLICKER_AMOUNT = 0.05;
 
-        // Bucle principal del juego.
+        /**
+         * El bucle principal del juego. Se ejecuta en cada fotograma.
+         * @param {number} currentTime - El tiempo actual proporcionado por `requestAnimationFrame`.
+         */
         function gameLoop(currentTime) {
+            // No hacer nada si el juego está en pausa.
             if (isPausedRef.current) {
                 animationFrameId = requestAnimationFrame(gameLoop);
                 return;
             }
+
+            // No hacer nada si la pantalla actual no es la del juego.
             if (gameState.currentScreen !== 'game') {
                 return;
             }
 
-            // Lógica de la zona actual.
+            // Determina la zona de profundidad actual y la siguiente.
             let currentZone = ZONE_COLORS[0];
             let nextZone = ZONE_COLORS[0];
             let zoneIndex = 0;
@@ -260,7 +278,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             }
             const interpolatedDarknessLevel = lerp(currentZone.darknessLevel, nextZone.darknessLevel, interpolationFactor);
 
-            // Dibuja el fondo del océano.
+            // Interpola los colores del océano y el nivel de oscuridad en función de la profundidad.
             const currentOceanR = lerp(currentZone.r, nextZone.r, interpolationFactor);
             const currentOceanG = lerp(currentZone.g, nextZone.g, interpolationFactor);
             const currentOceanB = lerp(currentZone.b, nextZone.b, interpolationFactor);
@@ -329,13 +347,13 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             spotlightFlickerFactor = Math.max(0.9, Math.min(1.1, spotlightFlickerFactor));
 
             // Dibuja la luz ambiental.
-            if (submarine.isSpotlightOn && interpolatedDarknessLevel > 0.1) {
+            if (submarine.spotlightOpacity > 0 && interpolatedDarknessLevel > 0.1) {
                 const visibleY = submarine.y - cameraY;
                 const centerX = submarine.x + submarine.width / 2;
                 const centerY = visibleY + submarine.height / 2;
                 if (isFinite(centerX) && isFinite(centerY) && isFinite(AMBIENT_LIGHT_RADIUS)) {
                     const ambientGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, AMBIENT_LIGHT_RADIUS);
-                    const baseOpacity = AMBIENT_LIGHT_MAX_OPACITY * spotlightFlickerFactor * interpolatedDarknessLevel;
+                    const baseOpacity = AMBIENT_LIGHT_MAX_OPACITY * spotlightFlickerFactor * interpolatedDarknessLevel * submarine.spotlightOpacity;
                     ambientGradient.addColorStop(0, `rgba(200, 220, 255, ${baseOpacity * 0.8})`);
                     ambientGradient.addColorStop(0.7, `rgba(150, 180, 255, ${baseOpacity * 0.4})`);
                     ambientGradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
@@ -347,7 +365,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             }
 
             // Dibuja el foco del submarino.
-            if (submarine.isSpotlightOn && submarine.batteryLevel > 0) {
+            if (submarine.spotlightOpacity > 0 && submarine.batteryLevel > 0) {
                 const visibleY = submarine.y - cameraY;
                 const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * SPOTLIGHT_HORIZONTAL_OFFSET : submarine.width * (1 - SPOTLIGHT_HORIZONTAL_OFFSET));
                 const lightSourceY = visibleY + submarine.height * SPOTLIGHT_VERTICAL_OFFSET;
@@ -364,8 +382,8 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                         p1x, p1y, 0,
                         p1x, p1y, SPOTLIGHT_LENGTH
                     );
-                    spotlightGradient.addColorStop(0, `rgba(200, 220, 255, ${0.5 * spotlightFlickerFactor})`);
-                    spotlightGradient.addColorStop(0.7, `rgba(150, 180, 255, ${0.2 * spotlightFlickerFactor})`);
+                    spotlightGradient.addColorStop(0, `rgba(200, 220, 255, ${0.5 * spotlightFlickerFactor * submarine.spotlightOpacity})`);
+                    spotlightGradient.addColorStop(0.7, `rgba(150, 180, 255, ${0.2 * spotlightFlickerFactor * submarine.spotlightOpacity})`);
                     spotlightGradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
 
                     ctx.fillStyle = spotlightGradient;
@@ -664,7 +682,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
 
         // Función para actualizar el radar.
         function updateRadarDisplay(creaturesInLight) {
-            const isActive = submarine.isSpotlightOn;
+            const isActive = submarine.spotlightOpacity > 0;
             const hasDetection = creaturesInLight.length > 0;
 
             if (isActive && hasDetection && detectedDotPosition.x === null) {
@@ -701,18 +719,24 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
     // Renderiza el componente.
     return (
         <div className="game-container" ref={gameContainerRef}>
-            <div className="game-area-wrapper" ref={gameAreaWrapperRef}>
-                <canvas id="gameCanvas" ref={canvasRef}></canvas>
-                <div id="creaturesContainer" ref={creaturesContainerRef}></div>
-                <div id="submarineElement" ref={submarineElementRef}>
-                    <img src="" alt="Submarino" ref={submarineImageElementRef} />
-                </div>
-            </div>
-            <div id="depthCounter">Profundidad: 0 m</div>
-            <div id="radarDisplay">
-                <canvas id="radarCanvas" ref={radarCanvasRef}></canvas>
-            </div>
-            <div id="batteryDisplay">Batería: 100%</div>
+            {!isGameInitialized ? (
+                <LoadingSpinner />
+            ) : (
+                <>
+                    <div className="game-area-wrapper" ref={gameAreaWrapperRef}>
+                        <canvas id="gameCanvas" ref={canvasRef}></canvas>
+                        <div id="creaturesContainer" ref={creaturesContainerRef}></div>
+                        <div id="submarineElement" ref={submarineElementRef}>
+                            <img src="" alt="Submarino" ref={submarineImageElementRef} />
+                        </div>
+                    </div>
+                    <div id="depthCounter">Profundidad: 0 m</div>
+                    <div id="radarDisplay">
+                        <canvas id="radarCanvas" ref={radarCanvasRef}></canvas>
+                    </div>
+                    <div id="batteryDisplay">Batería: 100%</div>
+                </>
+            )}
         </div>
     );
 };
