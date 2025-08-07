@@ -10,7 +10,7 @@ import GalleryModal from './components/Modals/GalleryModal';
 import PauseMenu from './components/Modals/PauseMenu';
 import Tutorial from './components/Modals/Tutorial';
 import MuteIndicator from './components/Hud/MuteIndicator';
-import { MuteIcon, UnmuteIcon, MUSIC_VOLUME } from './game/constants';
+import { MuteIcon, UnmuteIcon } from './game/constants';
 
 
 /**
