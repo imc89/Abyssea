@@ -50,7 +50,7 @@ export class Ocean {
  * Una mejor aproximación sería dibujarlo directamente en el canvas.
  */
 export class Submarine {
-    constructor(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SUBMARINE_STATIC_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED) {
+    constructor(ocean, preloadedImages, bubblePool, SUBMARINE_IMAGE_URL, SUBMARINE_STATIC_IMAGE_URL, SPOTLIGHT_MAX_BATTERY, SPOTLIGHT_DRAIN_RATE, SPOTLIGHT_CHARGE_RATE, MAX_WORLD_DEPTH, SUBMARINE_BASE_WIDTH, SUBMARINE_BASE_HEIGHT, SUBMARINE_SCALE_FACTOR, SUBMARINE_HORIZONTAL_SPEED, SUBMARINE_VERTICAL_SPEED, SUBMARINE_FADE_START_DEPTH, SUBMARINE_FADE_END_DEPTH, SUBMARINE_MIN_OPACITY, PIXELS_PER_METER) {
         this.ocean = ocean; // Instancia del océano.
         this.bubblePool = bubblePool; // Pool de burbujas.
         this.animatedImage = preloadedImages[SUBMARINE_IMAGE_URL];
@@ -100,6 +100,10 @@ export class Submarine {
         this.SPOTLIGHT_DRAIN_RATE = SPOTLIGHT_DRAIN_RATE;
         this.SPOTLIGHT_CHARGE_RATE = SPOTLIGHT_CHARGE_RATE;
         this.MAX_WORLD_DEPTH = MAX_WORLD_DEPTH;
+        this.SUBMARINE_FADE_START_DEPTH = SUBMARINE_FADE_START_DEPTH;
+        this.SUBMARINE_FADE_END_DEPTH = SUBMARINE_FADE_END_DEPTH;
+        this.SUBMARINE_MIN_OPACITY = SUBMARINE_MIN_OPACITY;
+        this.PIXELS_PER_METER = PIXELS_PER_METER;
     }
 
     /**
@@ -123,11 +127,11 @@ export class Submarine {
         this.element.style.transform = transform;
         this.element.style.transformOrigin = 'center center';
 
-        const depthInMeters = this.y / 10; // PIXELS_PER_METER is 10
-        const fadeStartDepth = 450;
-        const fadeEndDepth = 600;
+        const depthInMeters = this.y / this.PIXELS_PER_METER;
+        const fadeStartDepth = this.SUBMARINE_FADE_START_DEPTH;
+        const fadeEndDepth = this.SUBMARINE_FADE_END_DEPTH;
 
-        const opacityAtFadeStart = Math.max(0.1, 1 - globalDarknessFactor);
+        const opacityAtFadeStart = Math.max(this.SUBMARINE_MIN_OPACITY, 1 - globalDarknessFactor);
 
         if (depthInMeters > fadeStartDepth && !isSpotlightOn) {
             const fadeRange = fadeEndDepth - fadeStartDepth;
@@ -570,13 +574,8 @@ export class Creature {
         this.scaleFactor = 1.0;
         this.scaleDirection = 1;
         this.scaleSpeed = 0.005;
-        this.minScale = 0.95;
-        this.maxScale = 1.05;
-
-        if (this.id === 'anoplogaster') {
-            this.minScale = 1.0;
-            this.maxScale = 1.0;
-        }
+        this.minScale = 1.0;
+        this.maxScale = 1.0;
         this.isSchooling = false;
 
         this.movementChangeFrequency = creatureData.movementChangeFrequency;
