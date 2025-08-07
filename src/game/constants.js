@@ -27,6 +27,8 @@ export const SUBMARINE_FADE_START_DEPTH = 450; // Profundidad a la que el submar
 export const SUBMARINE_FADE_END_DEPTH = 600; // Profundidad a la que el submarino se desvanece por completo.
 export const SUBMARINE_MIN_OPACITY = 0.1; // Opacidad mínima del submarino.
 
+export const MUSIC_VOLUME = 0.9; // Volumen de la música de fondo.
+
 // Define la densidad de partículas para diferentes zonas de profundidad.
 export const PARTICLE_DENSITY_ZONES = [
     { depth: 0, densityFactor: 2.5 }, // Zona de superficie
