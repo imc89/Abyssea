@@ -555,6 +555,7 @@ export class Creature {
         this.lightColor = creatureData.lightColor || 'rgba(0, 200, 255, 0.9)';
         this.lightRadius = creatureData.lightRadius || 10;
         this.lightOffsetY = creatureData.lightOffsetY || 0;
+        this.lights = creatureData.lights;
 
         this.baseWidth = 120;
         this.baseHeight = 80;

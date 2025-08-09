@@ -403,23 +403,46 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                 ...individualCreatures.filter(creature => creature.hasLight)
             ];
             for (const creature of allCreaturesWithLights) {
-                const creatureCenterX = creature.x + creature.width / 2;
-                const creatureCenterY = creature.y + creature.height / 2 - cameraY + creature.lightOffsetY;
-                const lightRadius = creature.lightRadius;
+                if (creature.lights && creature.lights.length > 0) {
+                    creature.lights.forEach(light => {
+                        const lightX = creature.x + creature.width / 2 + (light.offsetX * creature.facingDirection);
+                        const lightY = creature.y + creature.height / 2 - cameraY + light.offsetY;
+                        const lightRadius = light.lightRadius;
 
-                if (isFinite(creatureCenterX) && isFinite(creatureCenterY) && isFinite(lightRadius) && lightRadius > 0) {
-                    const lightColor = creature.lightColor;
-                    const currentLightOpacity = creature.lightOpacity;
-                    const finalLightColor = lightColor.replace(/[^,]+(?=\))/, currentLightOpacity.toFixed(2));
+                        if (isFinite(lightX) && isFinite(lightY) && isFinite(lightRadius) && lightRadius > 0) {
+                            const lightColor = light.lightColor;
+                            const currentLightOpacity = creature.lightOpacity;
+                            const finalLightColor = lightColor.replace(/[^,]+(?=\))/, currentLightOpacity.toFixed(2));
 
-                    const creatureLightGradient = ctx.createRadialGradient(creatureCenterX, creatureCenterY, 0, creatureCenterX, creatureCenterY, lightRadius);
-                    creatureLightGradient.addColorStop(0, finalLightColor);
-                    creatureLightGradient.addColorStop(1, finalLightColor.replace(/[^,]+(?=\))/, '0'));
+                            const creatureLightGradient = ctx.createRadialGradient(lightX, lightY, 0, lightX, lightY, lightRadius);
+                            creatureLightGradient.addColorStop(0, finalLightColor);
+                            creatureLightGradient.addColorStop(1, finalLightColor.replace(/[^,]+(?=\))/, '0'));
 
-                    ctx.fillStyle = creatureLightGradient;
-                    ctx.beginPath();
-                    ctx.arc(creatureCenterX, creatureCenterY, lightRadius, 0, Math.PI * 2);
-                    ctx.fill();
+                            ctx.fillStyle = creatureLightGradient;
+                            ctx.beginPath();
+                            ctx.arc(lightX, lightY, lightRadius, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    });
+                } else { // Fallback for old single-light system
+                    const creatureCenterX = creature.x + creature.width / 2;
+                    const creatureCenterY = creature.y + creature.height / 2 - cameraY + creature.lightOffsetY;
+                    const lightRadius = creature.lightRadius;
+
+                    if (isFinite(creatureCenterX) && isFinite(creatureCenterY) && isFinite(lightRadius) && lightRadius > 0) {
+                        const lightColor = creature.lightColor;
+                        const currentLightOpacity = creature.lightOpacity;
+                        const finalLightColor = lightColor.replace(/[^,]+(?=\))/, currentLightOpacity.toFixed(2));
+
+                        const creatureLightGradient = ctx.createRadialGradient(creatureCenterX, creatureCenterY, 0, creatureCenterX, creatureCenterY, lightRadius);
+                        creatureLightGradient.addColorStop(0, finalLightColor);
+                        creatureLightGradient.addColorStop(1, finalLightColor.replace(/[^,]+(?=\))/, '0'));
+
+                        ctx.fillStyle = creatureLightGradient;
+                        ctx.beginPath();
+                        ctx.arc(creatureCenterX, creatureCenterY, lightRadius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
                 }
             }
 

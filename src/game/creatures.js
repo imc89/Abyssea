@@ -63,5 +63,26 @@ export const creatureData = [
         movementChangeFrequency: 2, // Frecuencia con la que la criatura cambia de dirección.
         isSchooling: false, // Si la criatura se mueve en cardumen.
         schoolingSeparation: 2, // Distancia de separación entre las criaturas del cardumen.
+    },
+    {
+        id: 'argyropelecus',
+        imageSrc: 'https://upload.wikimedia.org/wikipedia/commons/5/58/Argyropelecus_gigas_(Giant_hatchetfish).gif',
+        name: 'Argyropelecus',
+        description: 'A species of marine hatchetfish that live in deep tropical and subtropical waters.',
+        funFact: 'They have tubular eyes that are directed upwards, allowing them to see prey against the faint light from the surface.',
+        scale: 0.7,
+        minDepth: 500,
+        maxDepth: 800,
+        numInstances: 3,
+        flees: true,
+        movementChangeFrequency: 3,
+        isSchooling: false,
+        hasLight: true,
+        lights: [
+            { lightRadius: 3, offsetX: 30, offsetY: -10, lightColor: 'rgba(0, 200, 255, 0.9)' },
+            { lightRadius: 3, offsetX: 30, offsetY: 0, lightColor: 'rgba(0, 200, 255, 0.9)' },
+            { lightRadius: 3, offsetX: 30, offsetY: 10, lightColor: 'rgba(0, 200, 255, 0.9)' },
+            { lightRadius: 3, offsetX: 30, offsetY: 20, lightColor: 'rgba(0, 200, 255, 0.9)' }
+        ]
     }
 ];
