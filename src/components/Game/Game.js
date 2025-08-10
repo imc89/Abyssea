@@ -114,13 +114,16 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                     creatureInfo.isActive = true;
                     creatureInfo.lastSpawnTime = currentTime;
 
-                    if (creatureInfo.isSchooling) {
-                        const school = new School(creatureInfo, minDepthPixels, maxDepthPixels, creatureInfo.numInstances, canvas);
+            const preloadedImage = preloadedImages[creatureInfo.imageSrc];
+            if (!preloadedImage) return;
+
+            if (creatureInfo.isSchooling) {
+                const school = new School(creatureInfo, minDepthPixels, maxDepthPixels, creatureInfo.numInstances, canvas, preloadedImage);
                         activeCreatures.current[creatureInfo.id] = school;
                     } else {
                         const individuals = [];
                         for (let i = 0; i < creatureInfo.numInstances; i++) {
-                            const creature = new Creature(creatureInfo, minDepthPixels, maxDepthPixels, canvas);
+                    const creature = new Creature(creatureInfo, minDepthPixels, maxDepthPixels, canvas, preloadedImage);
                             individuals.push(creature);
                         }
                         activeCreatures.current[creatureInfo.id] = individuals;
@@ -348,11 +351,11 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             Object.values(activeCreatures.current).forEach(group => {
                 if (group.members) { // Es un cardumen (School).
                     group.update(currentTime, submarine);
-                    group.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
+                    group.draw(ctx, cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
                 } else { // Es un array de criaturas individuales.
                     group.forEach(creature => {
                         creature.update(currentTime, submarine);
-                        creature.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
+                        creature.draw(ctx, cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
                     });
                 }
             });
@@ -800,7 +803,6 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                     <div className="game-area-wrapper" ref={gameAreaWrapperRef}>
                         <canvas id="gameCanvas" ref={canvasRef}></canvas>
                         <canvas id="lightsCanvas" ref={lightsCanvasRef}></canvas>
-                        <div id="creaturesContainer" ref={creaturesContainerRef}></div>
                         <div id="submarineElement" ref={submarineElementRef}>
                             <img src="" alt="Submarino" ref={submarineImageElementRef} />
                         </div>

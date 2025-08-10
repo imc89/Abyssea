@@ -544,9 +544,9 @@ export class ObjectPool {
  * Una mejor aproximación sería dibujarlas directamente en el canvas.
  */
 export class Creature {
-    constructor(creatureData, worldMinY, worldMaxY, canvas) {
+    constructor(creatureData, worldMinY, worldMaxY, canvas, preloadedImage) {
         this.id = creatureData.id;
-        this.imageSrc = creatureData.imageSrc;
+        this.image = preloadedImage;
         this.name = creatureData.name;
         this.description = creatureData.description;
         this.funFact = creatureData.funFact;
@@ -557,11 +557,9 @@ export class Creature {
         this.lightOffsetY = creatureData.lightOffsetY || 0;
         this.lights = creatureData.lights;
 
-        this.baseWidth = 120;
-        this.baseHeight = 80;
         this.scale = creatureData.scale;
-        this.width = this.baseWidth * this.scale;
-        this.height = this.baseHeight * this.scale;
+        this.width = this.image.naturalWidth * this.scale;
+        this.height = this.image.naturalHeight * this.scale;
 
         this.x = Math.random() * (canvas.width - this.width);
         this.y = Math.random() * (worldMaxY - worldMinY) + worldMinY;
@@ -597,17 +595,6 @@ export class Creature {
         this.highlightDuration = 500;
         this.highlightStartTime = 0;
 
-        this.element = document.createElement('div');
-        this.element.classList.add('creature-element');
-        this.element.style.width = `${this.width}px`;
-        this.element.style.height = `${this.height}px`;
-
-        this.imageElement = document.createElement('img');
-        this.imageElement.src = this.imageSrc;
-        this.imageElement.alt = this.name;
-        this.element.appendChild(this.imageElement);
-
-        document.getElementById('creaturesContainer').appendChild(this.element);
         this.canvas = canvas;
     }
 
@@ -618,7 +605,7 @@ export class Creature {
     triggerHighlight(currentTime) {
         this.isHighlighting = true;
         this.highlightStartTime = currentTime;
-        this.element.classList.add('highlight');
+        // El resaltado ahora se manejará en el método draw.
     }
 
     /**
@@ -694,59 +681,59 @@ export class Creature {
 
         if (this.isHighlighting && (currentTime - this.highlightStartTime > this.highlightDuration)) {
             this.isHighlighting = false;
-            this.element.classList.remove('highlight');
         }
     }
 
     /**
-     * El método draw ahora actualiza las propiedades CSS del elemento DOM.
+     * Dibuja la criatura directamente en el lienzo del juego.
+     * @param {CanvasRenderingContext2D} ctx - El contexto de renderizado del lienzo.
      * @param {number} cameraY - Posición Y de la cámara.
      * @param {number} globalDarknessFactor - Factor de oscuridad global.
      * @param {boolean} isSubmarineSpotlightOn - Si el foco del submarino está encendido.
      * @param {Array<Creature>} creaturesInLight - Array de criaturas actualmente en la luz del foco.
      */
-    draw(cameraY, globalDarknessFactor, isSubmarineSpotlightOn, creaturesInLight) {
+    draw(ctx, cameraY, globalDarknessFactor, isSubmarineSpotlightOn, creaturesInLight) {
+        if (!this.image) return;
+
         const screenX = this.x;
         const screenY = this.y - cameraY;
-
-        this.element.style.left = `${screenX}px`;
-        this.element.style.top = `${screenY}px`;
-
-        let combinedScale = this.scale * this.scaleFactor;
-        let transform = `scale(${combinedScale}) `;
-        if (this.facingDirection === -1) {
-            transform += `scaleX(1)`;
-        } else {
-            transform += `scaleX(-1)`;
-        }
-        this.element.style.transform = transform;
-        this.element.style.transformOrigin = 'center center';
+        const combinedScale = this.scale * this.scaleFactor;
 
         let targetOpacity;
-        let targetFilterGrayscale;
-
         if (isSubmarineSpotlightOn && creaturesInLight.includes(this)) {
             targetOpacity = 1;
-            targetFilterGrayscale = 0;
         } else {
             targetOpacity = Math.max(0.1, 1 - globalDarknessFactor);
-            targetFilterGrayscale = globalDarknessFactor * 100;
         }
 
         this.currentOpacity = this.lerp(this.currentOpacity, targetOpacity, this.opacityTransitionSpeed);
 
-        this.element.style.opacity = this.currentOpacity;
-        this.element.style.filter = `grayscale(${targetFilterGrayscale}%)`;
+        ctx.save();
+        ctx.globalAlpha = this.currentOpacity;
+
+        // Aplica el efecto de resaltado si está activo.
+        if (this.isHighlighting) {
+            ctx.filter = 'brightness(2) drop-shadow(0 0 10px #fff)';
+        } else {
+            // Aplica el efecto de escala de grises basado en la oscuridad.
+            const grayscale = Math.min(1, globalDarknessFactor * 1.5);
+            ctx.filter = `grayscale(${grayscale})`;
+        }
+
+        // Dibuja la imagen de la criatura.
+        const drawX = screenX + this.width / 2;
+        const drawY = screenY + this.height / 2;
+
+        ctx.translate(drawX, drawY);
+        if (this.facingDirection === 1) {
+            ctx.scale(-1, 1);
+        }
+        ctx.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
+
+        ctx.restore();
     }
 
-    /**
-     * Elimina el elemento DOM de la criatura.
-     */
-    removeElement() {
-        if (this.element.parentNode) {
-            this.element.parentNode.removeChild(this.element);
-        }
-    }
+    // El método removeElement ya no es necesario.
 
     lerp(a, b, t) {
         return a + (b - a) * t;
@@ -757,7 +744,7 @@ export class Creature {
  * Gestiona el comportamiento de cardumen (boids) para un grupo de criaturas.
  */
 export class School {
-    constructor(creatureTypeData, worldMinY, worldMaxY, numMembers, canvas) {
+    constructor(creatureTypeData, worldMinY, worldMaxY, numMembers, canvas, preloadedImage) {
         this.members = [];
         this.creatureTypeData = creatureTypeData;
         this.worldMinY = worldMinY;
@@ -789,7 +776,8 @@ export class School {
                 creatureTypeData,
                 worldMinY,
                 worldMaxY,
-                canvas
+                canvas,
+                preloadedImage
             );
             creature.x = centerX + (Math.random() - 0.5) * 100;
             creature.y = centerY + (Math.random() - 0.5) * 100;
@@ -1020,21 +1008,22 @@ export class School {
 
     /**
      * Dibuja todos los miembros del cardumen.
+     * @param {CanvasRenderingContext2D} ctx - El contexto de renderizado del lienzo.
      * @param {number} cameraY - Posición Y de la cámara.
      * @param {number} globalDarknessFactor - Factor de oscuridad global.
      * @param {boolean} isSubmarineSpotlightOn - Si el foco del submarino está encendido.
      * @param {Array<Creature>} creaturesInLight - Array de criaturas actualmente en la luz del foco.
      */
-    draw(cameraY, globalDarknessFactor, isSubmarineSpotlightOn, creaturesInLight) {
+    draw(ctx, cameraY, globalDarknessFactor, isSubmarineSpotlightOn, creaturesInLight) {
         this.members.forEach(member => {
-            member.draw(cameraY, globalDarknessFactor, isSubmarineSpotlightOn, creaturesInLight);
+            member.draw(ctx, cameraY, globalDarknessFactor, isSubmarineSpotlightOn, creaturesInLight);
         });
     }
 
     /**
-     * Elimina los elementos DOM de todos los miembros del cardumen.
+     * Ya no es necesario eliminar elementos DOM. Este método se mantiene por compatibilidad con la lógica de despawning.
      */
     removeElements() {
-        this.members.forEach(member => member.removeElement());
+        // No hay nada que hacer aquí, ya que las criaturas se dibujan en el lienzo.
     }
 }
