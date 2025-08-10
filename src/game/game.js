@@ -555,6 +555,7 @@ export class Creature {
         this.lightColor = creatureData.lightColor || 'rgba(0, 200, 255, 0.9)';
         this.lightRadius = creatureData.lightRadius || 10;
         this.lightOffsetY = creatureData.lightOffsetY || 0;
+        this.lights = creatureData.lights;
 
         this.baseWidth = 120;
         this.baseHeight = 80;
@@ -847,30 +848,6 @@ export class School {
             });
         }
         const schoolFacingDirection = totalVelocityX >= 0 ? 1 : -1;
-
-        if (!this.isFleeing) {
-            // Leader's independent movement
-            this.leader.velocity.x += (Math.random() - 0.5) * 0.1;
-            this.leader.velocity.y += (Math.random() - 0.5) * 0.1;
-
-            const mag = Math.sqrt(this.leader.velocity.x ** 2 + this.leader.velocity.y ** 2);
-            if (mag > this.normalMaxSpeed) {
-                this.leader.velocity.x = (this.leader.velocity.x / mag) * this.normalMaxSpeed;
-                this.leader.velocity.y = (this.leader.velocity.y / mag) * this.normalMaxSpeed;
-            }
-
-            this.leader.x += this.leader.velocity.x;
-            this.leader.y += this.leader.velocity.y;
-
-            // Boundary check for the leader
-            if (this.leader.x < 0 || this.leader.x > this.canvas.width - this.leader.width) {
-                this.leader.velocity.x *= -1;
-            }
-            if (this.leader.y < this.worldMinY || this.leader.y > this.worldMaxY - this.leader.height) {
-                this.leader.velocity.y *= -1;
-            }
-        }
-
 
         this.members.forEach(member => {
             let separation = { x: 0, y: 0 };

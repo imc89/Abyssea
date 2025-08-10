@@ -25,6 +25,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
     const submarineElementRef = useRef(null);
     const submarineImageElementRef = useRef(null);
     const radarCanvasRef = useRef(null);
+    const lightsCanvasRef = useRef(null);
     // Estado para controlar si el juego está inicializado.
     const [isGameInitialized, setIsGameInitialized] = useState(false);
 
@@ -54,6 +55,20 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
         const gameAreaWrapper = gameAreaWrapperRef.current;
         const radarCanvas = radarCanvasRef.current;
         const radarCtx = radarCanvas.getContext('2d');
+        const lightsCanvas = lightsCanvasRef.current;
+        const lightsCtx = lightsCanvas.getContext('2d');
+
+        // Apply styles for layering
+        gameAreaWrapper.style.position = 'relative';
+        canvas.style.position = 'absolute';
+        canvas.style.zIndex = 1;
+        creaturesContainerRef.current.style.position = 'absolute';
+        creaturesContainerRef.current.style.zIndex = 2;
+        submarineElementRef.current.style.position = 'absolute';
+        submarineElementRef.current.style.zIndex = 3;
+        lightsCanvas.style.position = 'absolute';
+        lightsCanvas.style.zIndex = 4;
+
 
         // Variables del juego.
         let animationFrameId;
@@ -340,8 +355,9 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             }
 
             // Dibuja las luces.
-            ctx.save();
-            ctx.globalCompositeOperation = 'lighter';
+            lightsCtx.clearRect(0, 0, lightsCanvas.width, lightsCanvas.height);
+            lightsCtx.save();
+            lightsCtx.globalCompositeOperation = 'lighter';
 
             // Calcula el factor de parpadeo del foco.
             spotlightFlickerFactor = 1.0 + Math.sin(currentTime * SPOTLIGHT_FLICKER_SPEED) * SPOTLIGHT_FLICKER_AMOUNT;
@@ -353,15 +369,15 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                 const centerX = submarine.x + submarine.width / 2;
                 const centerY = visibleY + submarine.height / 2;
                 if (isFinite(centerX) && isFinite(centerY) && isFinite(AMBIENT_LIGHT_RADIUS)) {
-                    const ambientGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, AMBIENT_LIGHT_RADIUS);
+                    const ambientGradient = lightsCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, AMBIENT_LIGHT_RADIUS);
                     const baseOpacity = AMBIENT_LIGHT_MAX_OPACITY * spotlightFlickerFactor * interpolatedDarknessLevel * submarine.spotlightOpacity;
                     ambientGradient.addColorStop(0, `rgba(200, 220, 255, ${baseOpacity * 0.8})`);
                     ambientGradient.addColorStop(0.7, `rgba(150, 180, 255, ${baseOpacity * 0.4})`);
                     ambientGradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
-                    ctx.fillStyle = ambientGradient;
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, AMBIENT_LIGHT_RADIUS, 0, Math.PI * 2);
-                    ctx.fill();
+                    lightsCtx.fillStyle = ambientGradient;
+                    lightsCtx.beginPath();
+                    lightsCtx.arc(centerX, centerY, AMBIENT_LIGHT_RADIUS, 0, Math.PI * 2);
+                    lightsCtx.fill();
                 }
             }
 
@@ -379,7 +395,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                 const p3y = lightSourceY + SPOTLIGHT_WIDTH_AT_END / 2;
 
                 if (isFinite(p1x) && isFinite(p1y) && isFinite(SPOTLIGHT_LENGTH) && SPOTLIGHT_LENGTH > 0) {
-                    const spotlightGradient = ctx.createRadialGradient(
+                    const spotlightGradient = lightsCtx.createRadialGradient(
                         p1x, p1y, 0,
                         p1x, p1y, SPOTLIGHT_LENGTH
                     );
@@ -387,13 +403,13 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                     spotlightGradient.addColorStop(0.7, `rgba(150, 180, 255, ${0.2 * spotlightFlickerFactor * submarine.spotlightOpacity})`);
                     spotlightGradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
 
-                    ctx.fillStyle = spotlightGradient;
-                    ctx.beginPath();
-                    ctx.moveTo(p1x, p1y);
-                    ctx.lineTo(p2x, p2y);
-                    ctx.lineTo(p3x, p3y);
-                    ctx.closePath();
-                    ctx.fill();
+                    lightsCtx.fillStyle = spotlightGradient;
+                    lightsCtx.beginPath();
+                    lightsCtx.moveTo(p1x, p1y);
+                    lightsCtx.lineTo(p2x, p2y);
+                    lightsCtx.lineTo(p3x, p3y);
+                    lightsCtx.closePath();
+                    lightsCtx.fill();
                 }
             }
 
@@ -403,27 +419,50 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                 ...individualCreatures.filter(creature => creature.hasLight)
             ];
             for (const creature of allCreaturesWithLights) {
-                const creatureCenterX = creature.x + creature.width / 2;
-                const creatureCenterY = creature.y + creature.height / 2 - cameraY + creature.lightOffsetY;
-                const lightRadius = creature.lightRadius;
+                if (creature.lights && creature.lights.length > 0) {
+                    creature.lights.forEach(light => {
+                        const lightX = creature.x + creature.width / 2 + (light.offsetX * creature.facingDirection);
+                        const lightY = creature.y + creature.height / 2 - cameraY + light.offsetY;
+                        const lightRadius = light.lightRadius;
 
-                if (isFinite(creatureCenterX) && isFinite(creatureCenterY) && isFinite(lightRadius) && lightRadius > 0) {
-                    const lightColor = creature.lightColor;
-                    const currentLightOpacity = creature.lightOpacity;
-                    const finalLightColor = lightColor.replace(/[^,]+(?=\))/, currentLightOpacity.toFixed(2));
+                        if (isFinite(lightX) && isFinite(lightY) && isFinite(lightRadius) && lightRadius > 0) {
+                            const lightColor = light.lightColor;
+                            const currentLightOpacity = creature.lightOpacity;
+                            const finalLightColor = lightColor.replace(/[^,]+(?=\))/, currentLightOpacity.toFixed(2));
 
-                    const creatureLightGradient = ctx.createRadialGradient(creatureCenterX, creatureCenterY, 0, creatureCenterX, creatureCenterY, lightRadius);
-                    creatureLightGradient.addColorStop(0, finalLightColor);
-                    creatureLightGradient.addColorStop(1, finalLightColor.replace(/[^,]+(?=\))/, '0'));
+                            const creatureLightGradient = lightsCtx.createRadialGradient(lightX, lightY, 0, lightX, lightY, lightRadius);
+                            creatureLightGradient.addColorStop(0, finalLightColor);
+                            creatureLightGradient.addColorStop(1, finalLightColor.replace(/[^,]+(?=\))/, '0'));
 
-                    ctx.fillStyle = creatureLightGradient;
-                    ctx.beginPath();
-                    ctx.arc(creatureCenterX, creatureCenterY, lightRadius, 0, Math.PI * 2);
-                    ctx.fill();
+                            lightsCtx.fillStyle = creatureLightGradient;
+                            lightsCtx.beginPath();
+                            lightsCtx.arc(lightX, lightY, lightRadius, 0, Math.PI * 2);
+                            lightsCtx.fill();
+                        }
+                    });
+                } else { // Fallback for old single-light system
+                    const creatureCenterX = creature.x + creature.width / 2;
+                    const creatureCenterY = creature.y + creature.height / 2 - cameraY + creature.lightOffsetY;
+                    const lightRadius = creature.lightRadius;
+
+                    if (isFinite(creatureCenterX) && isFinite(creatureCenterY) && isFinite(lightRadius) && lightRadius > 0) {
+                        const lightColor = creature.lightColor;
+                        const currentLightOpacity = creature.lightOpacity;
+                        const finalLightColor = lightColor.replace(/[^,]+(?=\))/, currentLightOpacity.toFixed(2));
+
+                        const creatureLightGradient = lightsCtx.createRadialGradient(creatureCenterX, creatureCenterY, 0, creatureCenterX, creatureCenterY, lightRadius);
+                        creatureLightGradient.addColorStop(0, finalLightColor);
+                        creatureLightGradient.addColorStop(1, finalLightColor.replace(/[^,]+(?=\))/, '0'));
+
+                        lightsCtx.fillStyle = creatureLightGradient;
+                        lightsCtx.beginPath();
+                        lightsCtx.arc(creatureCenterX, creatureCenterY, lightRadius, 0, Math.PI * 2);
+                        lightsCtx.fill();
+                    }
                 }
             }
 
-            ctx.restore();
+            lightsCtx.restore();
 
             // Actualiza y dibuja las partículas.
             particlePool.forEachActive(p => {
@@ -549,6 +588,8 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             gameAreaWrapper.style.height = `${newHeight}px`;
             canvas.width = newWidth;
             canvas.height = newHeight;
+            lightsCanvas.width = newWidth;
+            lightsCanvas.height = newHeight;
 
             radarCanvas.width = document.getElementById('radarDisplay').offsetWidth;
             radarCanvas.height = document.getElementById('radarDisplay').offsetHeight;
@@ -726,6 +767,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                 <>
                     <div className="game-area-wrapper" ref={gameAreaWrapperRef}>
                         <canvas id="gameCanvas" ref={canvasRef}></canvas>
+                        <canvas id="lightsCanvas" ref={lightsCanvasRef}></canvas>
                         <div id="creaturesContainer" ref={creaturesContainerRef}></div>
                         <div id="submarineElement" ref={submarineElementRef}>
                             <img src="" alt="Submarino" ref={submarineImageElementRef} />
