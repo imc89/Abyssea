@@ -31,6 +31,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
 
     const isPausedRef = useRef(isPaused);
     isPausedRef.current = isPaused;
+    const activeCreatures = useRef({});
 
     // Efecto para precargar las imágenes del juego.
     useEffect(() => {
@@ -94,36 +95,47 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
         const particlePool = new ObjectPool(Particle, 5000);
         let submarine;
 
-        const creatureSchools = {};
-        const individualCreatures = [];
-
-        // Función para inicializar las criaturas del juego.
-        function initializeCreatures() {
-            Object.values(creatureSchools).forEach(school => {
-                if (school && typeof school.removeElements === 'function') {
-                    school.removeElements();
-                }
-            });
-            for (const key in creatureSchools) {
-                if (creatureSchools.hasOwnProperty(key)) {
-                    delete creatureSchools[key];
-                }
-            }
-
-            individualCreatures.forEach(creature => creature.removeElement());
-            individualCreatures.length = 0;
+        // Función para gestionar dinámicamente las criaturas activas.
+        function updateActiveCreatures(currentTime, cameraY, canvas) {
+            const SPAWN_BUFFER = canvas.height; // Búfer por encima y por debajo de la vista.
+            const viewTop = cameraY - SPAWN_BUFFER;
+            const viewBottom = cameraY + canvas.height + SPAWN_BUFFER;
 
             creatureData.forEach(creatureInfo => {
                 const minDepthPixels = creatureInfo.minDepth * PIXELS_PER_METER;
                 const maxDepthPixels = creatureInfo.maxDepth * PIXELS_PER_METER;
+                const spawnCooldown = 10000; // 10 segundos de enfriamiento para reaparecer.
 
-                if (creatureInfo.isSchooling) {
-                    const numCreatures = creatureInfo.numInstances;
-                    creatureSchools[creatureInfo.id] = new School(creatureInfo, minDepthPixels, maxDepthPixels, numCreatures, canvas);
-                } else {
-                    for (let i = 0; i < creatureInfo.numInstances; i++) {
-                        const creature = new Creature(creatureInfo, minDepthPixels, maxDepthPixels, canvas);
-                        individualCreatures.push(creature);
+                // Comprueba si el rango de profundidad de la criatura se solapa con el área de visión.
+                const isInView = (minDepthPixels < viewBottom && maxDepthPixels > viewTop);
+
+                if (isInView && !creatureInfo.isActive && (currentTime - creatureInfo.lastSpawnTime > spawnCooldown)) {
+                    // Genera las criaturas.
+                    creatureInfo.isActive = true;
+                    creatureInfo.lastSpawnTime = currentTime;
+
+                    if (creatureInfo.isSchooling) {
+                        const school = new School(creatureInfo, minDepthPixels, maxDepthPixels, creatureInfo.numInstances, canvas);
+                        activeCreatures.current[creatureInfo.id] = school;
+                    } else {
+                        const individuals = [];
+                        for (let i = 0; i < creatureInfo.numInstances; i++) {
+                            const creature = new Creature(creatureInfo, minDepthPixels, maxDepthPixels, canvas);
+                            individuals.push(creature);
+                        }
+                        activeCreatures.current[creatureInfo.id] = individuals;
+                    }
+                } else if (!isInView && creatureInfo.isActive) {
+                    // Elimina las criaturas.
+                    creatureInfo.isActive = false;
+                    const active = activeCreatures.current[creatureInfo.id];
+                    if (active) {
+                        if (creatureInfo.isSchooling) {
+                            active.removeElements();
+                        } else {
+                            active.forEach(c => c.removeElement());
+                        }
+                        delete activeCreatures.current[creatureInfo.id];
                     }
                 }
             });
@@ -202,10 +214,12 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             const subCenterX = submarine.x + submarine.width / 2;
             const subCenterY = submarine.y + submarine.height / 2;
 
-            const allCreatures = [
-                ...Object.values(creatureSchools).flatMap(school => school.members),
-                ...individualCreatures
-            ];
+            const allCreatures = Object.values(activeCreatures.current).flatMap(group => {
+                if (group.members) { // Es un cardumen (School).
+                    return group.members;
+                }
+                return group; // Es un array de criaturas individuales.
+            });
 
             for (const creature of allCreatures) {
                 const creatureCenterX = creature.x + creature.width / 2;
@@ -315,6 +329,9 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             ocean.update();
             cameraY = submarine.update(currentTime, canvas, cameraY);
 
+            // Gestiona dinámicamente las criaturas activas.
+            updateActiveCreatures(currentTime, cameraY, canvas);
+
             const visibleSubY = submarine.y - cameraY;
             const lightSourceX = submarine.x + (submarine.facingDirection === 1 ? submarine.width * SPOTLIGHT_HORIZONTAL_OFFSET : submarine.width * (1 - SPOTLIGHT_HORIZONTAL_OFFSET));
             const lightSourceY = visibleSubY + submarine.height * SPOTLIGHT_VERTICAL_OFFSET;
@@ -328,14 +345,16 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             const creaturesInLight = getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
 
             // Actualiza y dibuja las criaturas.
-            Object.values(creatureSchools).forEach(school => {
-                school.update(currentTime, submarine);
-                school.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
-            });
-
-            individualCreatures.forEach(creature => {
-                creature.update(currentTime, submarine);
-                creature.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
+            Object.values(activeCreatures.current).forEach(group => {
+                if (group.members) { // Es un cardumen (School).
+                    group.update(currentTime, submarine);
+                    group.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
+                } else { // Es un array de criaturas individuales.
+                    group.forEach(creature => {
+                        creature.update(currentTime, submarine);
+                        creature.draw(cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn, creaturesInLight);
+                    });
+                }
             });
 
             // Dibuja el océano.
@@ -414,10 +433,12 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             }
 
             // Dibuja las luces de las criaturas.
-            const allCreaturesWithLights = [
-                ...Object.values(creatureSchools).flatMap(school => school.members.filter(member => member.hasLight)),
-                ...individualCreatures.filter(creature => creature.hasLight)
-            ];
+            const allCreaturesWithLights = Object.values(activeCreatures.current).flatMap(group => {
+                if (group.members) { // Es un cardumen (School).
+                    return group.members.filter(member => member.hasLight);
+                }
+                return group.filter(creature => creature.hasLight); // Es un array de criaturas individuales.
+            });
             for (const creature of allCreaturesWithLights) {
                 if (creature.lights && creature.lights.length > 0) {
                     creature.lights.forEach(light => {
@@ -604,7 +625,18 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
 
             submarine.x = canvas.width / 2 - submarine.width / 2;
 
-            initializeCreatures();
+            // Elimina todas las criaturas activas al redimensionar. La lógica de actualización las regenerará.
+            Object.values(activeCreatures.current).forEach(group => {
+                if (group.members) { // Es un cardumen (School).
+                    group.removeElements();
+                } else { // Es un array de criaturas individuales.
+                    group.forEach(c => c.removeElement());
+                }
+            });
+            activeCreatures.current = {};
+            creatureData.forEach(c => {
+                c.isActive = false; // Restablece el estado para que puedan reaparecer.
+            });
 
             particlePool.pool.forEach(p => p.active = false);
             const baseMotesPer1000Pixels = 80;

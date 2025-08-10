@@ -14,6 +14,8 @@ export const creatureData = [
         movementChangeFrequency: 4, // Frecuencia con la que la criatura cambia de dirección.
         isSchooling: true, // Si la criatura se mueve en cardumen.
         schoolingSeparation: 3, // Distancia de separación entre las criaturas del cardumen.
+        lastSpawnTime: 0,
+        isActive: false,
     },
     {
         id: 'pezFantasma', // Identificador único de la criatura.
@@ -33,6 +35,8 @@ export const creatureData = [
         movementChangeFrequency: 1, // Frecuencia con la que la criatura cambia de dirección.
         isSchooling: false, // Si la criatura se mueve en cardumen.
         schoolingSeparation: 3, // Distancia de separación entre las criaturas del cardumen.
+        lastSpawnTime: 0,
+        isActive: false,
     },
     {
         id: 'calamarMesopelagico', // Identificador único de la criatura.
@@ -48,6 +52,8 @@ export const creatureData = [
         movementChangeFrequency: 5, // Frecuencia con la que la criatura cambia de dirección.
         isSchooling: false, // Si la criatura se mueve en cardumen.
         schoolingSeparation: 2, // Distancia de separación entre las criaturas del cardumen.
+        lastSpawnTime: 0,
+        isActive: false,
     },
     {
         id: 'anoplogaster', // Identificador único de la criatura.
@@ -63,6 +69,8 @@ export const creatureData = [
         movementChangeFrequency: 2, // Frecuencia con la que la criatura cambia de dirección.
         isSchooling: false, // Si la criatura se mueve en cardumen.
         schoolingSeparation: 2, // Distancia de separación entre las criaturas del cardumen.
+        lastSpawnTime: 0,
+        isActive: false,
     },
     {
         id: 'argyropelecus',
@@ -83,6 +91,8 @@ export const creatureData = [
             { lightRadius: 3, offsetX: 30, offsetY: 0, lightColor: 'rgba(0, 200, 255, 0.9)' },
             { lightRadius: 3, offsetX: 30, offsetY: 10, lightColor: 'rgba(0, 200, 255, 0.9)' },
             { lightRadius: 3, offsetX: 30, offsetY: 20, lightColor: 'rgba(0, 200, 255, 0.9)' }
-        ]
+        ],
+        lastSpawnTime: 0,
+        isActive: false,
     }
 ];
