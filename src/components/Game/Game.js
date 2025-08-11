@@ -32,6 +32,7 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
     const isPausedRef = useRef(isPaused);
     isPausedRef.current = isPaused;
     const activeCreatures = useRef({});
+    const preloadedImagesRef = useRef({});
 
     // Efecto para precargar las imágenes del juego.
     useEffect(() => {
@@ -42,8 +43,6 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             setIsGameInitialized(true);
         });
     }, []);
-
-    const preloadedImagesRef = useRef({});
 
     // Efecto para inicializar y manejar el bucle del juego.
     useEffect(() => {
