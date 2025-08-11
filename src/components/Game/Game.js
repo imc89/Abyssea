@@ -63,10 +63,9 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
         gameAreaWrapper.style.position = 'relative';
         canvas.style.position = 'absolute';
         canvas.style.zIndex = 1;
-        creaturesContainerRef.current.style.position = 'absolute';
-        creaturesContainerRef.current.style.zIndex = 2;
+        // creaturesContainerRef is no longer used.
         submarineElementRef.current.style.position = 'absolute';
-        submarineElementRef.current.style.zIndex = 3;
+        submarineElementRef.current.style.zIndex = 2;
         lightsCanvas.style.position = 'absolute';
         lightsCanvas.style.zIndex = 4;
 
