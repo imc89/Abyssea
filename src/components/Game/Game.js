@@ -346,6 +346,13 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
             const spotlightP3Y = lightSourceY + SPOTLIGHT_WIDTH_AT_END / 2;
             const creaturesInLight = getCreaturesInLight(spotlightP1X, spotlightP1Y, spotlightP2X, spotlightP2Y, spotlightP3X, spotlightP3Y);
 
+            // Dibuja la superposición de oscuridad.
+            const finalDarknessOverlayOpacity = interpolatedDarknessLevel;
+            if (finalDarknessOverlayOpacity > 0) {
+                ctx.fillStyle = `rgba(0, 0, 0, ${finalDarknessOverlayOpacity})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
             // Actualiza y dibuja las criaturas.
             Object.values(activeCreatures.current).forEach(group => {
                 if (group.members) { // Es un cardumen (School).
@@ -367,13 +374,6 @@ const Game = ({ onCreatureDiscovery, onGamePause, onShowCreatureModal, isPaused,
                 bubble.update();
                 bubble.draw(ctx, cameraY, interpolatedDarknessLevel, submarine.isSpotlightOn);
             });
-
-            // Dibuja la superposición de oscuridad.
-            const finalDarknessOverlayOpacity = interpolatedDarknessLevel;
-            if (finalDarknessOverlayOpacity > 0) {
-                ctx.fillStyle = `rgba(0, 0, 0, ${finalDarknessOverlayOpacity})`;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
 
             // Dibuja las luces.
             lightsCtx.clearRect(0, 0, lightsCanvas.width, lightsCanvas.height);
